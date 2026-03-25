@@ -8,6 +8,7 @@ environment:
   flutter: ^3.24.0
 
 dependencies:
+  audioplayers: ^6.1.0
   cached_network_image: ^3.4.1
   connectivity_plus: ^6.1.1
   dio: ^5.7.0
@@ -17,6 +18,7 @@ dependencies:
   fl_chart: ^0.69.2
   flutter:
     sdk: flutter
+  flutter_foreground_task: ^8.10.0
   flutter_image_compress: ^2.3.0
   flutter_localizations:
     sdk: flutter
@@ -49,4 +51,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/audio/
     - assets/images/
