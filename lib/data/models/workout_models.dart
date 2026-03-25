@@ -65,6 +65,8 @@ class ActivityLogSummary with _$ActivityLogSummary {
     @JsonKey(name: 'created_at') required String createdAt,
     @JsonKey(name: 'duration_minutes') int? durationMinutes,
     @JsonKey(name: 'feeling_display') String? feelingDisplay,
+    @JsonKey(name: 'session_name') String? sessionName,
+    @JsonKey(name: 'set_count') int? setCount,
   }) = _ActivityLogSummary;
 
   factory ActivityLogSummary.fromJson(Map<String, dynamic> json) =>

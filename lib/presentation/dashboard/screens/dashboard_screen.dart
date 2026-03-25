@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 import 'package:palestra/data/models/relation_models.dart';
 import 'package:palestra/data/models/user_model.dart';
@@ -7,6 +8,7 @@ import 'package:palestra/data/models/workout_models.dart';
 import 'package:palestra/presentation/auth/providers/auth_providers.dart';
 import 'package:palestra/presentation/dashboard/widgets/active_workout_card.dart';
 import 'package:palestra/presentation/dashboard/widgets/client_avatar_list.dart';
+import 'package:palestra/presentation/dashboard/widgets/client_recent_activity_list.dart';
 import 'package:palestra/presentation/dashboard/widgets/recent_activity_list.dart';
 import 'package:palestra/presentation/dashboard/widgets/trainer_stats_grid.dart';
 import 'package:palestra/presentation/dashboard/widgets/training_calendar.dart';
@@ -14,6 +16,7 @@ import 'package:palestra/presentation/dashboard/widgets/welcome_card.dart';
 import 'package:palestra/presentation/shared/providers/user_providers.dart';
 import 'package:palestra/presentation/shared/providers/workout_providers.dart';
 import 'package:palestra/presentation/shared/widgets/shimmer_loading.dart';
+import 'package:palestra/presentation/workouts/widgets/start_workout_sheet.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -79,9 +82,7 @@ class _ClientDashboard extends ConsumerWidget {
                   children: [
                     ActiveWorkoutCard(
                       execution: execution,
-                      onResume: () {
-                        // TODO(dev): navigate to active workout
-                      },
+                      onResume: () => context.go('/workout/${execution.id}'),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -132,7 +133,13 @@ class _ClientDashboard extends ConsumerWidget {
                       NextWorkoutCard(
                         plan: activePlans.first,
                         onStart: () {
-                          // TODO(dev): navigate to start workout
+                          showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) =>
+                                StartWorkoutSheet(planId: activePlans.first.id),
+                          );
                         },
                       ),
                       const SizedBox(height: 16),
@@ -147,6 +154,14 @@ class _ClientDashboard extends ConsumerWidget {
             error: (_, __) => const SizedBox.shrink(),
           ),
           const TrainingCalendar(),
+          ref.watch(activityLogsProvider).when(
+            data: (logs) => ClientRecentActivityList(
+              logs: logs,
+              onViewAll: () => context.go('/activity'),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
         ],
       ),
     );

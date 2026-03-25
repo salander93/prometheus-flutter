@@ -905,6 +905,10 @@ mixin _$ActivityLogSummary {
   int? get durationMinutes => throw _privateConstructorUsedError;
   @JsonKey(name: 'feeling_display')
   String? get feelingDisplay => throw _privateConstructorUsedError;
+  @JsonKey(name: 'session_name')
+  String? get sessionName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'set_count')
+  int? get setCount => throw _privateConstructorUsedError;
 
   /// Serializes this ActivityLogSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -928,7 +932,9 @@ abstract class $ActivityLogSummaryCopyWith<$Res> {
       String date,
       @JsonKey(name: 'created_at') String createdAt,
       @JsonKey(name: 'duration_minutes') int? durationMinutes,
-      @JsonKey(name: 'feeling_display') String? feelingDisplay});
+      @JsonKey(name: 'feeling_display') String? feelingDisplay,
+      @JsonKey(name: 'session_name') String? sessionName,
+      @JsonKey(name: 'set_count') int? setCount});
 }
 
 /// @nodoc
@@ -952,6 +958,8 @@ class _$ActivityLogSummaryCopyWithImpl<$Res, $Val extends ActivityLogSummary>
     Object? createdAt = null,
     Object? durationMinutes = freezed,
     Object? feelingDisplay = freezed,
+    Object? sessionName = freezed,
+    Object? setCount = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -978,6 +986,14 @@ class _$ActivityLogSummaryCopyWithImpl<$Res, $Val extends ActivityLogSummary>
           ? _value.feelingDisplay
           : feelingDisplay // ignore: cast_nullable_to_non_nullable
               as String?,
+      sessionName: freezed == sessionName
+          ? _value.sessionName
+          : sessionName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      setCount: freezed == setCount
+          ? _value.setCount
+          : setCount // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -996,7 +1012,9 @@ abstract class _$$ActivityLogSummaryImplCopyWith<$Res>
       String date,
       @JsonKey(name: 'created_at') String createdAt,
       @JsonKey(name: 'duration_minutes') int? durationMinutes,
-      @JsonKey(name: 'feeling_display') String? feelingDisplay});
+      @JsonKey(name: 'feeling_display') String? feelingDisplay,
+      @JsonKey(name: 'session_name') String? sessionName,
+      @JsonKey(name: 'set_count') int? setCount});
 }
 
 /// @nodoc
@@ -1018,6 +1036,8 @@ class __$$ActivityLogSummaryImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? durationMinutes = freezed,
     Object? feelingDisplay = freezed,
+    Object? sessionName = freezed,
+    Object? setCount = freezed,
   }) {
     return _then(_$ActivityLogSummaryImpl(
       id: null == id
@@ -1044,6 +1064,14 @@ class __$$ActivityLogSummaryImplCopyWithImpl<$Res>
           ? _value.feelingDisplay
           : feelingDisplay // ignore: cast_nullable_to_non_nullable
               as String?,
+      sessionName: freezed == sessionName
+          ? _value.sessionName
+          : sessionName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      setCount: freezed == setCount
+          ? _value.setCount
+          : setCount // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -1057,7 +1085,9 @@ class _$ActivityLogSummaryImpl implements _ActivityLogSummary {
       required this.date,
       @JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'duration_minutes') this.durationMinutes,
-      @JsonKey(name: 'feeling_display') this.feelingDisplay});
+      @JsonKey(name: 'feeling_display') this.feelingDisplay,
+      @JsonKey(name: 'session_name') this.sessionName,
+      @JsonKey(name: 'set_count') this.setCount});
 
   factory _$ActivityLogSummaryImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityLogSummaryImplFromJson(json);
@@ -1078,10 +1108,16 @@ class _$ActivityLogSummaryImpl implements _ActivityLogSummary {
   @override
   @JsonKey(name: 'feeling_display')
   final String? feelingDisplay;
+  @override
+  @JsonKey(name: 'session_name')
+  final String? sessionName;
+  @override
+  @JsonKey(name: 'set_count')
+  final int? setCount;
 
   @override
   String toString() {
-    return 'ActivityLogSummary(id: $id, clientName: $clientName, date: $date, createdAt: $createdAt, durationMinutes: $durationMinutes, feelingDisplay: $feelingDisplay)';
+    return 'ActivityLogSummary(id: $id, clientName: $clientName, date: $date, createdAt: $createdAt, durationMinutes: $durationMinutes, feelingDisplay: $feelingDisplay, sessionName: $sessionName, setCount: $setCount)';
   }
 
   @override
@@ -1098,13 +1134,17 @@ class _$ActivityLogSummaryImpl implements _ActivityLogSummary {
             (identical(other.durationMinutes, durationMinutes) ||
                 other.durationMinutes == durationMinutes) &&
             (identical(other.feelingDisplay, feelingDisplay) ||
-                other.feelingDisplay == feelingDisplay));
+                other.feelingDisplay == feelingDisplay) &&
+            (identical(other.sessionName, sessionName) ||
+                other.sessionName == sessionName) &&
+            (identical(other.setCount, setCount) ||
+                other.setCount == setCount));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, clientName, date, createdAt,
-      durationMinutes, feelingDisplay);
+      durationMinutes, feelingDisplay, sessionName, setCount);
 
   /// Create a copy of ActivityLogSummary
   /// with the given fields replaced by the non-null parameter values.
@@ -1130,7 +1170,9 @@ abstract class _ActivityLogSummary implements ActivityLogSummary {
           required final String date,
           @JsonKey(name: 'created_at') required final String createdAt,
           @JsonKey(name: 'duration_minutes') final int? durationMinutes,
-          @JsonKey(name: 'feeling_display') final String? feelingDisplay}) =
+          @JsonKey(name: 'feeling_display') final String? feelingDisplay,
+          @JsonKey(name: 'session_name') final String? sessionName,
+          @JsonKey(name: 'set_count') final int? setCount}) =
       _$ActivityLogSummaryImpl;
 
   factory _ActivityLogSummary.fromJson(Map<String, dynamic> json) =
@@ -1152,6 +1194,12 @@ abstract class _ActivityLogSummary implements ActivityLogSummary {
   @override
   @JsonKey(name: 'feeling_display')
   String? get feelingDisplay;
+  @override
+  @JsonKey(name: 'session_name')
+  String? get sessionName;
+  @override
+  @JsonKey(name: 'set_count')
+  int? get setCount;
 
   /// Create a copy of ActivityLogSummary
   /// with the given fields replaced by the non-null parameter values.

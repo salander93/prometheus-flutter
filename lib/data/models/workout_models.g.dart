@@ -86,6 +86,8 @@ _$ActivityLogSummaryImpl _$$ActivityLogSummaryImplFromJson(
       createdAt: json['created_at'] as String,
       durationMinutes: (json['duration_minutes'] as num?)?.toInt(),
       feelingDisplay: json['feeling_display'] as String?,
+      sessionName: json['session_name'] as String?,
+      setCount: (json['set_count'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$ActivityLogSummaryImplToJson(
@@ -97,4 +99,6 @@ Map<String, dynamic> _$$ActivityLogSummaryImplToJson(
       'created_at': instance.createdAt,
       'duration_minutes': instance.durationMinutes,
       'feeling_display': instance.feelingDisplay,
+      'session_name': instance.sessionName,
+      'set_count': instance.setCount,
     };
