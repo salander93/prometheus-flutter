@@ -1,0 +1,12 @@
+.dart_tool/
+build/
+.git/
+.github/
+android/
+ios/
+macos/
+windows/
+linux/
+test/
+*.md
+.gitignore
