@@ -5,13 +5,6 @@ import 'package:palestra/core/theme/app_colors.dart';
 import 'package:palestra/data/models/execution_models.dart';
 import 'package:palestra/presentation/shared/providers/workout_providers.dart';
 
-/// Fetches the session suggestion for a given plan.
-final sessionSuggestionProvider = FutureProvider.family<
-    SessionSuggestionResponse, int>((ref, planId) async {
-  final repo = ref.watch(workoutRepositoryProvider);
-  return repo.suggestSession(planId);
-});
-
 /// Screen where the user picks which session and week to start.
 class SessionSelectorScreen extends ConsumerStatefulWidget {
   const SessionSelectorScreen({
