@@ -461,10 +461,10 @@ ExerciseExecution _$ExerciseExecutionFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ExerciseExecution {
   int get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'plan_exercise')
+  @JsonKey(name: 'workout_plan_exercise')
   int get planExercise => throw _privateConstructorUsedError;
   @JsonKey(name: 'exercise_name')
-  String get exerciseName => throw _privateConstructorUsedError;
+  String? get exerciseName => throw _privateConstructorUsedError;
   int get order => throw _privateConstructorUsedError;
   @JsonKey(name: 'exercise_image')
   String? get exerciseImage => throw _privateConstructorUsedError;
@@ -489,8 +489,8 @@ abstract class $ExerciseExecutionCopyWith<$Res> {
   @useResult
   $Res call(
       {int id,
-      @JsonKey(name: 'plan_exercise') int planExercise,
-      @JsonKey(name: 'exercise_name') String exerciseName,
+      @JsonKey(name: 'workout_plan_exercise') int planExercise,
+      @JsonKey(name: 'exercise_name') String? exerciseName,
       int order,
       @JsonKey(name: 'exercise_image') String? exerciseImage,
       String? notes,
@@ -514,7 +514,7 @@ class _$ExerciseExecutionCopyWithImpl<$Res, $Val extends ExerciseExecution>
   $Res call({
     Object? id = null,
     Object? planExercise = null,
-    Object? exerciseName = null,
+    Object? exerciseName = freezed,
     Object? order = null,
     Object? exerciseImage = freezed,
     Object? notes = freezed,
@@ -529,10 +529,10 @@ class _$ExerciseExecutionCopyWithImpl<$Res, $Val extends ExerciseExecution>
           ? _value.planExercise
           : planExercise // ignore: cast_nullable_to_non_nullable
               as int,
-      exerciseName: null == exerciseName
+      exerciseName: freezed == exerciseName
           ? _value.exerciseName
           : exerciseName // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       order: null == order
           ? _value.order
           : order // ignore: cast_nullable_to_non_nullable
@@ -563,8 +563,8 @@ abstract class _$$ExerciseExecutionImplCopyWith<$Res>
   @useResult
   $Res call(
       {int id,
-      @JsonKey(name: 'plan_exercise') int planExercise,
-      @JsonKey(name: 'exercise_name') String exerciseName,
+      @JsonKey(name: 'workout_plan_exercise') int planExercise,
+      @JsonKey(name: 'exercise_name') String? exerciseName,
       int order,
       @JsonKey(name: 'exercise_image') String? exerciseImage,
       String? notes,
@@ -586,7 +586,7 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? planExercise = null,
-    Object? exerciseName = null,
+    Object? exerciseName = freezed,
     Object? order = null,
     Object? exerciseImage = freezed,
     Object? notes = freezed,
@@ -601,10 +601,10 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
           ? _value.planExercise
           : planExercise // ignore: cast_nullable_to_non_nullable
               as int,
-      exerciseName: null == exerciseName
+      exerciseName: freezed == exerciseName
           ? _value.exerciseName
           : exerciseName // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       order: null == order
           ? _value.order
           : order // ignore: cast_nullable_to_non_nullable
@@ -630,8 +630,8 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
 class _$ExerciseExecutionImpl implements _ExerciseExecution {
   const _$ExerciseExecutionImpl(
       {required this.id,
-      @JsonKey(name: 'plan_exercise') required this.planExercise,
-      @JsonKey(name: 'exercise_name') required this.exerciseName,
+      @JsonKey(name: 'workout_plan_exercise') required this.planExercise,
+      @JsonKey(name: 'exercise_name') this.exerciseName,
       required this.order,
       @JsonKey(name: 'exercise_image') this.exerciseImage,
       this.notes,
@@ -644,11 +644,11 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
   @override
   final int id;
   @override
-  @JsonKey(name: 'plan_exercise')
+  @JsonKey(name: 'workout_plan_exercise')
   final int planExercise;
   @override
   @JsonKey(name: 'exercise_name')
-  final String exerciseName;
+  final String? exerciseName;
   @override
   final int order;
   @override
@@ -712,8 +712,8 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
 abstract class _ExerciseExecution implements ExerciseExecution {
   const factory _ExerciseExecution(
       {required final int id,
-      @JsonKey(name: 'plan_exercise') required final int planExercise,
-      @JsonKey(name: 'exercise_name') required final String exerciseName,
+      @JsonKey(name: 'workout_plan_exercise') required final int planExercise,
+      @JsonKey(name: 'exercise_name') final String? exerciseName,
       required final int order,
       @JsonKey(name: 'exercise_image') final String? exerciseImage,
       final String? notes,
@@ -725,11 +725,11 @@ abstract class _ExerciseExecution implements ExerciseExecution {
   @override
   int get id;
   @override
-  @JsonKey(name: 'plan_exercise')
+  @JsonKey(name: 'workout_plan_exercise')
   int get planExercise;
   @override
   @JsonKey(name: 'exercise_name')
-  String get exerciseName;
+  String? get exerciseName;
   @override
   int get order;
   @override
@@ -757,9 +757,9 @@ mixin _$ExerciseSet {
   int get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'set_number')
   int get setNumber => throw _privateConstructorUsedError;
-  @JsonKey(name: 'target_reps')
+  @JsonKey(name: 'target_reps', fromJson: _intFromJson)
   int? get targetReps => throw _privateConstructorUsedError;
-  @JsonKey(name: 'actual_reps')
+  @JsonKey(name: 'actual_reps', fromJson: _intFromJson)
   int? get actualReps => throw _privateConstructorUsedError;
   @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
   double? get targetWeight => throw _privateConstructorUsedError;
@@ -789,8 +789,8 @@ abstract class $ExerciseSetCopyWith<$Res> {
   $Res call(
       {int id,
       @JsonKey(name: 'set_number') int setNumber,
-      @JsonKey(name: 'target_reps') int? targetReps,
-      @JsonKey(name: 'actual_reps') int? actualReps,
+      @JsonKey(name: 'target_reps', fromJson: _intFromJson) int? targetReps,
+      @JsonKey(name: 'actual_reps', fromJson: _intFromJson) int? actualReps,
       @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
       double? targetWeight,
       @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
@@ -871,8 +871,8 @@ abstract class _$$ExerciseSetImplCopyWith<$Res>
   $Res call(
       {int id,
       @JsonKey(name: 'set_number') int setNumber,
-      @JsonKey(name: 'target_reps') int? targetReps,
-      @JsonKey(name: 'actual_reps') int? actualReps,
+      @JsonKey(name: 'target_reps', fromJson: _intFromJson) int? targetReps,
+      @JsonKey(name: 'actual_reps', fromJson: _intFromJson) int? actualReps,
       @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
       double? targetWeight,
       @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
@@ -946,8 +946,8 @@ class _$ExerciseSetImpl implements _ExerciseSet {
   const _$ExerciseSetImpl(
       {required this.id,
       @JsonKey(name: 'set_number') required this.setNumber,
-      @JsonKey(name: 'target_reps') this.targetReps,
-      @JsonKey(name: 'actual_reps') this.actualReps,
+      @JsonKey(name: 'target_reps', fromJson: _intFromJson) this.targetReps,
+      @JsonKey(name: 'actual_reps', fromJson: _intFromJson) this.actualReps,
       @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
       this.targetWeight,
       @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
@@ -964,10 +964,10 @@ class _$ExerciseSetImpl implements _ExerciseSet {
   @JsonKey(name: 'set_number')
   final int setNumber;
   @override
-  @JsonKey(name: 'target_reps')
+  @JsonKey(name: 'target_reps', fromJson: _intFromJson)
   final int? targetReps;
   @override
-  @JsonKey(name: 'actual_reps')
+  @JsonKey(name: 'actual_reps', fromJson: _intFromJson)
   final int? actualReps;
   @override
   @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
@@ -1034,8 +1034,10 @@ abstract class _ExerciseSet implements ExerciseSet {
   const factory _ExerciseSet(
           {required final int id,
           @JsonKey(name: 'set_number') required final int setNumber,
-          @JsonKey(name: 'target_reps') final int? targetReps,
-          @JsonKey(name: 'actual_reps') final int? actualReps,
+          @JsonKey(name: 'target_reps', fromJson: _intFromJson)
+          final int? targetReps,
+          @JsonKey(name: 'actual_reps', fromJson: _intFromJson)
+          final int? actualReps,
           @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
           final double? targetWeight,
           @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
@@ -1053,10 +1055,10 @@ abstract class _ExerciseSet implements ExerciseSet {
   @JsonKey(name: 'set_number')
   int get setNumber;
   @override
-  @JsonKey(name: 'target_reps')
+  @JsonKey(name: 'target_reps', fromJson: _intFromJson)
   int? get targetReps;
   @override
-  @JsonKey(name: 'actual_reps')
+  @JsonKey(name: 'actual_reps', fromJson: _intFromJson)
   int? get actualReps;
   @override
   @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)

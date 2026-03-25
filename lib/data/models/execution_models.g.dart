@@ -48,8 +48,8 @@ _$ExerciseExecutionImpl _$$ExerciseExecutionImplFromJson(
         Map<String, dynamic> json) =>
     _$ExerciseExecutionImpl(
       id: (json['id'] as num).toInt(),
-      planExercise: (json['plan_exercise'] as num).toInt(),
-      exerciseName: json['exercise_name'] as String,
+      planExercise: (json['workout_plan_exercise'] as num).toInt(),
+      exerciseName: json['exercise_name'] as String?,
       order: (json['order'] as num).toInt(),
       exerciseImage: json['exercise_image'] as String?,
       notes: json['notes'] as String?,
@@ -63,7 +63,7 @@ Map<String, dynamic> _$$ExerciseExecutionImplToJson(
         _$ExerciseExecutionImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'plan_exercise': instance.planExercise,
+      'workout_plan_exercise': instance.planExercise,
       'exercise_name': instance.exerciseName,
       'order': instance.order,
       'exercise_image': instance.exerciseImage,
@@ -75,8 +75,8 @@ _$ExerciseSetImpl _$$ExerciseSetImplFromJson(Map<String, dynamic> json) =>
     _$ExerciseSetImpl(
       id: (json['id'] as num).toInt(),
       setNumber: (json['set_number'] as num).toInt(),
-      targetReps: (json['target_reps'] as num?)?.toInt(),
-      actualReps: (json['actual_reps'] as num?)?.toInt(),
+      targetReps: _intFromJson(json['target_reps']),
+      actualReps: _intFromJson(json['actual_reps']),
       targetWeight: _doubleFromJson(json['target_weight']),
       actualWeight: _doubleFromJson(json['actual_weight']),
       restDuration: (json['rest_duration'] as num?)?.toInt(),

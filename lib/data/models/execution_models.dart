@@ -31,8 +31,8 @@ class WorkoutExecutionDetail with _$WorkoutExecutionDetail {
 class ExerciseExecution with _$ExerciseExecution {
   const factory ExerciseExecution({
     required int id,
-    @JsonKey(name: 'plan_exercise') required int planExercise,
-    @JsonKey(name: 'exercise_name') required String exerciseName,
+    @JsonKey(name: 'workout_plan_exercise') required int planExercise,
+    @JsonKey(name: 'exercise_name') String? exerciseName,
     required int order,
     @JsonKey(name: 'exercise_image') String? exerciseImage,
     String? notes,
@@ -48,8 +48,8 @@ class ExerciseSet with _$ExerciseSet {
   const factory ExerciseSet({
     required int id,
     @JsonKey(name: 'set_number') required int setNumber,
-    @JsonKey(name: 'target_reps') int? targetReps,
-    @JsonKey(name: 'actual_reps') int? actualReps,
+    @JsonKey(name: 'target_reps', fromJson: _intFromJson) int? targetReps,
+    @JsonKey(name: 'actual_reps', fromJson: _intFromJson) int? actualReps,
     @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
     double? targetWeight,
     @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
@@ -105,6 +105,14 @@ class SuggestionSessionInfo with _$SuggestionSessionInfo {
 
   factory SuggestionSessionInfo.fromJson(Map<String, dynamic> json) =>
       _$SuggestionSessionInfoFromJson(json);
+}
+
+int? _intFromJson(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is String) return int.tryParse(value);
+  if (value is num) return value.toInt();
+  return null;
 }
 
 double? _doubleFromJson(dynamic value) {
