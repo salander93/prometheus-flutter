@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:palestra/core/theme/app_colors.dart';
+import 'package:palestra/presentation/workouts/services/audio_service.dart';
+import 'package:palestra/presentation/workouts/services/haptic_service.dart';
+
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -13,6 +17,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // UI-only placeholders — real persistence is a future task
   bool _darkMode = true;
   bool _pushNotifications = true;
+  bool _hapticEnabled = true;
+  bool _audioEnabled = true;
 
   Future<void> _showDeleteAccountDialog() async {
     final confirmed = await showDialog<bool>(
@@ -96,6 +102,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 setState(() => _pushNotifications = value);
                 // TODO(dev): implement push notification permission request
               },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── Allenamento ─────────────────────────────────────────────────
+          _SectionHeader(title: 'Allenamento', textTheme: textTheme),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const Icon(Icons.vibration),
+                  title: const Text('Feedback aptico'),
+                  subtitle: const Text("Vibrazione durante l'allenamento"),
+                  value: _hapticEnabled,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) {
+                    setState(() => _hapticEnabled = v);
+                    ref.read(hapticServiceProvider).enabled = v;
+                  },
+                ),
+                const Divider(height: 1, indent: 56),
+                SwitchListTile(
+                  secondary: const Icon(Icons.volume_up_outlined),
+                  title: const Text('Suoni timer'),
+                  subtitle: const Text('Beep al termine del recupero'),
+                  value: _audioEnabled,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) {
+                    setState(() => _audioEnabled = v);
+                    ref.read(audioServiceProvider).enabled = v;
+                  },
+                ),
+              ],
             ),
           ),
 
