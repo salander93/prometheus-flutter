@@ -519,7 +519,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                 if (timerState.isActive &&
                     timerState.exerciseExecId != currentExerciseId)
                   Positioned(
-                    bottom: 16,
+                    bottom: 80,
                     right: 16,
                     child: FloatingTimerWidget(
                       state: timerState,
@@ -534,6 +534,47 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                       },
                     ),
                   ),
+                // "Termina Allenamento" button at bottom
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundBase,
+                      border: Border(
+                        top: BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: FilledButton(
+                        onPressed: () {
+                          ref.read(workoutStateProvider.notifier).showCompletion();
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: wState.completedSetCount == wState.totalSets
+                              ? AppColors.success
+                              : AppColors.backgroundCard,
+                          foregroundColor: wState.completedSetCount == wState.totalSets
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          wState.completedSetCount == wState.totalSets
+                              ? 'Completa Allenamento ✓'
+                              : 'Termina Allenamento (${wState.completedSetCount}/${wState.totalSets})',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
     );
