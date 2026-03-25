@@ -199,15 +199,18 @@ class _ActiveCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          FilledButton(
-            onPressed: onComplete,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          SizedBox(
+            width: 110,
+            child: FilledButton(
+              onPressed: onComplete,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              ),
+              child: const Text('Completa ✓', style: TextStyle(fontSize: 12)),
             ),
-            child: const Text('Completa ✓'),
           ),
         ],
       ),
