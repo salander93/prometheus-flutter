@@ -9,7 +9,9 @@ import 'package:palestra/core/storage/cache_providers.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 import 'package:palestra/presentation/auth/providers/auth_providers.dart';
 import 'package:palestra/presentation/shared/providers/notification_providers.dart';
+import 'package:palestra/presentation/shared/providers/workout_providers.dart';
 import 'package:palestra/presentation/shared/widgets/flame_icon.dart';
+import 'package:palestra/presentation/workouts/widgets/flame_widget.dart';
 import 'package:palestra/presentation/shared/widgets/offline_banner.dart';
 
 class _NavDestinationSpec {
@@ -213,6 +215,7 @@ class _AppNavigationShellState extends ConsumerState<AppNavigationShell> {
       bottomNavigationBar: _FloatingPillNav(
         destinations: destinations,
         selectedIndex: selectedIndex,
+        hasActiveWorkout: ref.watch(activeExecutionProvider).valueOrNull != null,
         onDestinationSelected: (index) {
           context.go(destinations[index].path);
         },
@@ -240,11 +243,13 @@ class _FloatingPillNav extends StatelessWidget {
     required this.destinations,
     required this.selectedIndex,
     required this.onDestinationSelected,
+    this.hasActiveWorkout = false,
   });
 
   final List<_NavDestinationSpec> destinations;
   final int selectedIndex;
   final void Function(int index) onDestinationSelected;
+  final bool hasActiveWorkout;
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +294,7 @@ class _FloatingPillNav extends StatelessWidget {
                     label: destinations[i].label,
                     isSelected: i == selectedIndex,
                     useFlameIcon: destinations[i].useFlameIcon,
+                    hasActiveWorkout: hasActiveWorkout,
                     onTap: () => onDestinationSelected(i),
                     ),
                   ),
@@ -309,6 +315,7 @@ class _PillNavItem extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.useFlameIcon = false,
+    this.hasActiveWorkout = false,
   });
 
   final IconData icon;
@@ -317,12 +324,33 @@ class _PillNavItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final bool useFlameIcon;
+  final bool hasActiveWorkout;
 
   @override
   Widget build(BuildContext context) {
     final iconColor = isSelected
         ? Colors.white
         : AppColors.textSecondary;
+
+    Widget iconWidget;
+    if (useFlameIcon && hasActiveWorkout) {
+      // Animated flame when workout is active
+      iconWidget = const FlameWidget(
+        scale: 0.7,
+        opacity: 0.9,
+        speedSeconds: 0.35,
+        glow: 0.5,
+        size: 26,
+      );
+    } else if (useFlameIcon) {
+      iconWidget = FlameIcon(size: 24, color: iconColor);
+    } else {
+      iconWidget = Icon(
+        isSelected ? selectedIcon : icon,
+        size: 24,
+        color: iconColor,
+      );
+    }
 
     return InkWell(
       onTap: onTap,
@@ -348,18 +376,7 @@ class _PillNavItem extends StatelessWidget {
                     ],
                   )
                 : null,
-            child: useFlameIcon
-                ? Center(
-                    child: FlameIcon(
-                      size: 24,
-                      color: iconColor,
-                    ),
-                  )
-                : Icon(
-                    isSelected ? selectedIcon : icon,
-                    size: 24,
-                    color: iconColor,
-                  ),
+            child: Center(child: iconWidget),
           ),
         ),
       ),
