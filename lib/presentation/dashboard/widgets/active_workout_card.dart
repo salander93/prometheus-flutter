@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 import 'package:palestra/data/models/workout_models.dart';
 
@@ -189,12 +189,10 @@ class _ActiveWorkoutCardState extends State<ActiveWorkoutCard>
                         ),
                         child: Text(
                           _formattedTime,
-                          style: const TextStyle(
+                          style: GoogleFonts.jetBrainsMono(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
-                            fontFamily: 'monospace',
-                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),

@@ -354,7 +354,7 @@ class _PillNavItemState extends State<_PillNavItem>
         vsync: this,
         duration: const Duration(milliseconds: 800),
       );
-      _flameController!.repeat(reverse: true);
+      _flameController!.repeat();
     } else {
       _flameController?.stop();
       _flameController?.reset();
@@ -375,14 +375,41 @@ class _PillNavItemState extends State<_PillNavItem>
 
     Widget iconWidget;
     if (widget.useFlameIcon && widget.hasActiveWorkout && _flameController != null) {
-      // Animated flame matching PWA: scale + translateY + orange/gold glow
+      // Animated flame matching PWA flameFlicker keyframes:
+      // 0%:   scale=1.0,  y=0,   glow=base
+      // 25%:  scale=1.1,  y=-1,  glow=strong
+      // 50%:  scale=1.05, y=-2,  glow=mid
+      // 75%:  scale=1.12, y=-1,  glow=strong
+      // 100%: scale=1.0,  y=0,   glow=base
       iconWidget = AnimatedBuilder(
         animation: _flameController!,
         builder: (context, child) {
           final t = _flameController!.value;
-          final scale = 1.0 + (t * 0.12); // 1.0 → 1.12
-          final translateY = -t * 2.0; // 0 → -2px
-          final glowOpacity = 0.4 + (t * 0.4);
+          // Simulate PWA 4-phase keyframes
+          double scale;
+          double translateY;
+          double glowIntensity;
+          if (t < 0.25) {
+            final p = t / 0.25;
+            scale = 1.0 + (0.10 * p);
+            translateY = -1.0 * p;
+            glowIntensity = 0.4 + (0.4 * p);
+          } else if (t < 0.5) {
+            final p = (t - 0.25) / 0.25;
+            scale = 1.10 - (0.05 * p);
+            translateY = -1.0 - (1.0 * p);
+            glowIntensity = 0.8 - (0.15 * p);
+          } else if (t < 0.75) {
+            final p = (t - 0.5) / 0.25;
+            scale = 1.05 + (0.07 * p);
+            translateY = -2.0 + (1.0 * p);
+            glowIntensity = 0.65 + (0.15 * p);
+          } else {
+            final p = (t - 0.75) / 0.25;
+            scale = 1.12 - (0.12 * p);
+            translateY = -1.0 + (1.0 * p);
+            glowIntensity = 0.8 - (0.4 * p);
+          }
           return Transform.translate(
             offset: Offset(0, translateY),
             child: Transform.scale(
@@ -392,12 +419,12 @@ class _PillNavItemState extends State<_PillNavItem>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: glowOpacity),
-                      blurRadius: 4 + (t * 4),
+                      color: AppColors.primary.withValues(alpha: glowIntensity),
+                      blurRadius: 4 + (glowIntensity * 8),
                     ),
                     BoxShadow(
-                      color: const Color(0xFFF7C331).withValues(alpha: glowOpacity * 0.6),
-                      blurRadius: 8 + (t * 7),
+                      color: const Color(0xFFF7C331).withValues(alpha: glowIntensity * 0.6),
+                      blurRadius: 8 + (glowIntensity * 10),
                     ),
                   ],
                 ),
