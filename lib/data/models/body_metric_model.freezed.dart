@@ -25,27 +25,33 @@ mixin _$BodyMetric {
   String get recordedAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get weight => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get chest => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get waist => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get hips => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get shoulders => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get neck => throw _privateConstructorUsedError;
-  @JsonKey(name: 'biceps_left')
+  @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson)
   double? get bicepsLeft => throw _privateConstructorUsedError;
-  @JsonKey(name: 'biceps_right')
+  @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
   double? get bicepsRight => throw _privateConstructorUsedError;
-  @JsonKey(name: 'thigh_left')
+  @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson)
   double? get thighLeft => throw _privateConstructorUsedError;
-  @JsonKey(name: 'thigh_right')
+  @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson)
   double? get thighRight => throw _privateConstructorUsedError;
-  @JsonKey(name: 'calf_left')
+  @JsonKey(name: 'calf_left', fromJson: _doubleFromJson)
   double? get calfLeft => throw _privateConstructorUsedError;
-  @JsonKey(name: 'calf_right')
+  @JsonKey(name: 'calf_right', fromJson: _doubleFromJson)
   double? get calfRight => throw _privateConstructorUsedError;
-  @JsonKey(name: 'forearm_left')
+  @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
   double? get forearmLeft => throw _privateConstructorUsedError;
-  @JsonKey(name: 'forearm_right')
+  @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
   double? get forearmRight => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
 
@@ -69,20 +75,25 @@ abstract class $BodyMetricCopyWith<$Res> {
       {int id,
       @JsonKey(name: 'recorded_at') String recordedAt,
       @JsonKey(name: 'created_at') String createdAt,
-      double? weight,
-      double? chest,
-      double? waist,
-      double? hips,
-      double? shoulders,
-      double? neck,
-      @JsonKey(name: 'biceps_left') double? bicepsLeft,
-      @JsonKey(name: 'biceps_right') double? bicepsRight,
-      @JsonKey(name: 'thigh_left') double? thighLeft,
-      @JsonKey(name: 'thigh_right') double? thighRight,
-      @JsonKey(name: 'calf_left') double? calfLeft,
-      @JsonKey(name: 'calf_right') double? calfRight,
-      @JsonKey(name: 'forearm_left') double? forearmLeft,
-      @JsonKey(name: 'forearm_right') double? forearmRight,
+      @JsonKey(fromJson: _doubleFromJson) double? weight,
+      @JsonKey(fromJson: _doubleFromJson) double? chest,
+      @JsonKey(fromJson: _doubleFromJson) double? waist,
+      @JsonKey(fromJson: _doubleFromJson) double? hips,
+      @JsonKey(fromJson: _doubleFromJson) double? shoulders,
+      @JsonKey(fromJson: _doubleFromJson) double? neck,
+      @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson)
+      double? bicepsLeft,
+      @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
+      double? bicepsRight,
+      @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson) double? thighLeft,
+      @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson)
+      double? thighRight,
+      @JsonKey(name: 'calf_left', fromJson: _doubleFromJson) double? calfLeft,
+      @JsonKey(name: 'calf_right', fromJson: _doubleFromJson) double? calfRight,
+      @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
+      double? forearmLeft,
+      @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
+      double? forearmRight,
       String? notes});
 }
 
@@ -209,20 +220,25 @@ abstract class _$$BodyMetricImplCopyWith<$Res>
       {int id,
       @JsonKey(name: 'recorded_at') String recordedAt,
       @JsonKey(name: 'created_at') String createdAt,
-      double? weight,
-      double? chest,
-      double? waist,
-      double? hips,
-      double? shoulders,
-      double? neck,
-      @JsonKey(name: 'biceps_left') double? bicepsLeft,
-      @JsonKey(name: 'biceps_right') double? bicepsRight,
-      @JsonKey(name: 'thigh_left') double? thighLeft,
-      @JsonKey(name: 'thigh_right') double? thighRight,
-      @JsonKey(name: 'calf_left') double? calfLeft,
-      @JsonKey(name: 'calf_right') double? calfRight,
-      @JsonKey(name: 'forearm_left') double? forearmLeft,
-      @JsonKey(name: 'forearm_right') double? forearmRight,
+      @JsonKey(fromJson: _doubleFromJson) double? weight,
+      @JsonKey(fromJson: _doubleFromJson) double? chest,
+      @JsonKey(fromJson: _doubleFromJson) double? waist,
+      @JsonKey(fromJson: _doubleFromJson) double? hips,
+      @JsonKey(fromJson: _doubleFromJson) double? shoulders,
+      @JsonKey(fromJson: _doubleFromJson) double? neck,
+      @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson)
+      double? bicepsLeft,
+      @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
+      double? bicepsRight,
+      @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson) double? thighLeft,
+      @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson)
+      double? thighRight,
+      @JsonKey(name: 'calf_left', fromJson: _doubleFromJson) double? calfLeft,
+      @JsonKey(name: 'calf_right', fromJson: _doubleFromJson) double? calfRight,
+      @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
+      double? forearmLeft,
+      @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
+      double? forearmRight,
       String? notes});
 }
 
@@ -342,20 +358,23 @@ class _$BodyMetricImpl implements _BodyMetric {
       {required this.id,
       @JsonKey(name: 'recorded_at') required this.recordedAt,
       @JsonKey(name: 'created_at') required this.createdAt,
-      this.weight,
-      this.chest,
-      this.waist,
-      this.hips,
-      this.shoulders,
-      this.neck,
-      @JsonKey(name: 'biceps_left') this.bicepsLeft,
-      @JsonKey(name: 'biceps_right') this.bicepsRight,
-      @JsonKey(name: 'thigh_left') this.thighLeft,
-      @JsonKey(name: 'thigh_right') this.thighRight,
-      @JsonKey(name: 'calf_left') this.calfLeft,
-      @JsonKey(name: 'calf_right') this.calfRight,
-      @JsonKey(name: 'forearm_left') this.forearmLeft,
-      @JsonKey(name: 'forearm_right') this.forearmRight,
+      @JsonKey(fromJson: _doubleFromJson) this.weight,
+      @JsonKey(fromJson: _doubleFromJson) this.chest,
+      @JsonKey(fromJson: _doubleFromJson) this.waist,
+      @JsonKey(fromJson: _doubleFromJson) this.hips,
+      @JsonKey(fromJson: _doubleFromJson) this.shoulders,
+      @JsonKey(fromJson: _doubleFromJson) this.neck,
+      @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson) this.bicepsLeft,
+      @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
+      this.bicepsRight,
+      @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson) this.thighLeft,
+      @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson) this.thighRight,
+      @JsonKey(name: 'calf_left', fromJson: _doubleFromJson) this.calfLeft,
+      @JsonKey(name: 'calf_right', fromJson: _doubleFromJson) this.calfRight,
+      @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
+      this.forearmLeft,
+      @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
+      this.forearmRight,
       this.notes});
 
   factory _$BodyMetricImpl.fromJson(Map<String, dynamic> json) =>
@@ -370,40 +389,46 @@ class _$BodyMetricImpl implements _BodyMetric {
   @JsonKey(name: 'created_at')
   final String createdAt;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? weight;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? chest;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? waist;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? hips;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? shoulders;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? neck;
   @override
-  @JsonKey(name: 'biceps_left')
+  @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson)
   final double? bicepsLeft;
   @override
-  @JsonKey(name: 'biceps_right')
+  @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
   final double? bicepsRight;
   @override
-  @JsonKey(name: 'thigh_left')
+  @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson)
   final double? thighLeft;
   @override
-  @JsonKey(name: 'thigh_right')
+  @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson)
   final double? thighRight;
   @override
-  @JsonKey(name: 'calf_left')
+  @JsonKey(name: 'calf_left', fromJson: _doubleFromJson)
   final double? calfLeft;
   @override
-  @JsonKey(name: 'calf_right')
+  @JsonKey(name: 'calf_right', fromJson: _doubleFromJson)
   final double? calfRight;
   @override
-  @JsonKey(name: 'forearm_left')
+  @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
   final double? forearmLeft;
   @override
-  @JsonKey(name: 'forearm_right')
+  @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
   final double? forearmRight;
   @override
   final String? notes;
@@ -493,20 +518,28 @@ abstract class _BodyMetric implements BodyMetric {
       {required final int id,
       @JsonKey(name: 'recorded_at') required final String recordedAt,
       @JsonKey(name: 'created_at') required final String createdAt,
-      final double? weight,
-      final double? chest,
-      final double? waist,
-      final double? hips,
-      final double? shoulders,
-      final double? neck,
-      @JsonKey(name: 'biceps_left') final double? bicepsLeft,
-      @JsonKey(name: 'biceps_right') final double? bicepsRight,
-      @JsonKey(name: 'thigh_left') final double? thighLeft,
-      @JsonKey(name: 'thigh_right') final double? thighRight,
-      @JsonKey(name: 'calf_left') final double? calfLeft,
-      @JsonKey(name: 'calf_right') final double? calfRight,
-      @JsonKey(name: 'forearm_left') final double? forearmLeft,
-      @JsonKey(name: 'forearm_right') final double? forearmRight,
+      @JsonKey(fromJson: _doubleFromJson) final double? weight,
+      @JsonKey(fromJson: _doubleFromJson) final double? chest,
+      @JsonKey(fromJson: _doubleFromJson) final double? waist,
+      @JsonKey(fromJson: _doubleFromJson) final double? hips,
+      @JsonKey(fromJson: _doubleFromJson) final double? shoulders,
+      @JsonKey(fromJson: _doubleFromJson) final double? neck,
+      @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson)
+      final double? bicepsLeft,
+      @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
+      final double? bicepsRight,
+      @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson)
+      final double? thighLeft,
+      @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson)
+      final double? thighRight,
+      @JsonKey(name: 'calf_left', fromJson: _doubleFromJson)
+      final double? calfLeft,
+      @JsonKey(name: 'calf_right', fromJson: _doubleFromJson)
+      final double? calfRight,
+      @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
+      final double? forearmLeft,
+      @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
+      final double? forearmRight,
       final String? notes}) = _$BodyMetricImpl;
 
   factory _BodyMetric.fromJson(Map<String, dynamic> json) =
@@ -521,40 +554,46 @@ abstract class _BodyMetric implements BodyMetric {
   @JsonKey(name: 'created_at')
   String get createdAt;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get weight;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get chest;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get waist;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get hips;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get shoulders;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get neck;
   @override
-  @JsonKey(name: 'biceps_left')
+  @JsonKey(name: 'biceps_left', fromJson: _doubleFromJson)
   double? get bicepsLeft;
   @override
-  @JsonKey(name: 'biceps_right')
+  @JsonKey(name: 'biceps_right', fromJson: _doubleFromJson)
   double? get bicepsRight;
   @override
-  @JsonKey(name: 'thigh_left')
+  @JsonKey(name: 'thigh_left', fromJson: _doubleFromJson)
   double? get thighLeft;
   @override
-  @JsonKey(name: 'thigh_right')
+  @JsonKey(name: 'thigh_right', fromJson: _doubleFromJson)
   double? get thighRight;
   @override
-  @JsonKey(name: 'calf_left')
+  @JsonKey(name: 'calf_left', fromJson: _doubleFromJson)
   double? get calfLeft;
   @override
-  @JsonKey(name: 'calf_right')
+  @JsonKey(name: 'calf_right', fromJson: _doubleFromJson)
   double? get calfRight;
   @override
-  @JsonKey(name: 'forearm_left')
+  @JsonKey(name: 'forearm_left', fromJson: _doubleFromJson)
   double? get forearmLeft;
   @override
-  @JsonKey(name: 'forearm_right')
+  @JsonKey(name: 'forearm_right', fromJson: _doubleFromJson)
   double? get forearmRight;
   @override
   String? get notes;

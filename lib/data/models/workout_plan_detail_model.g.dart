@@ -89,7 +89,7 @@ _$SessionExerciseImpl _$$SessionExerciseImplFromJson(
       exerciseMuscleGroup: json['exercise_muscle_group'] as String?,
       exerciseMuscleGroupDisplay:
           json['exercise_muscle_group_display'] as String?,
-      weightKg: (json['weight_kg'] as num?)?.toDouble(),
+      weightKg: _doubleFromJson(json['weight_kg']),
       notes: json['notes'] as String? ?? '',
       isPyramid: json['is_pyramid'] as bool? ?? false,
       setDetails: json['set_details'] as Map<String, dynamic>?,
@@ -130,7 +130,7 @@ _$WeeklyProgressionImpl _$$WeeklyProgressionImplFromJson(
       sets: (json['sets'] as num).toInt(),
       reps: json['reps'] as String,
       restTime: json['rest_time'] as String,
-      weightKg: (json['weight_kg'] as num?)?.toDouble(),
+      weightKg: _doubleFromJson(json['weight_kg']),
       notes: json['notes'] as String? ?? '',
     );
 

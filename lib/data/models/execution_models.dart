@@ -50,8 +50,10 @@ class ExerciseSet with _$ExerciseSet {
     @JsonKey(name: 'set_number') required int setNumber,
     @JsonKey(name: 'target_reps') int? targetReps,
     @JsonKey(name: 'actual_reps') int? actualReps,
-    @JsonKey(name: 'target_weight') double? targetWeight,
-    @JsonKey(name: 'actual_weight') double? actualWeight,
+    @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
+    double? targetWeight,
+    @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
+    double? actualWeight,
     @JsonKey(name: 'rest_duration') int? restDuration,
     @JsonKey(name: 'completed_at') String? completedAt,
   }) = _ExerciseSet;
@@ -103,4 +105,11 @@ class SuggestionSessionInfo with _$SuggestionSessionInfo {
 
   factory SuggestionSessionInfo.fromJson(Map<String, dynamic> json) =>
       _$SuggestionSessionInfoFromJson(json);
+}
+
+double? _doubleFromJson(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
 }

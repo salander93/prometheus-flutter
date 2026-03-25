@@ -797,7 +797,7 @@ mixin _$SessionExercise {
   String? get exerciseMuscleGroup => throw _privateConstructorUsedError;
   @JsonKey(name: 'exercise_muscle_group_display')
   String? get exerciseMuscleGroupDisplay => throw _privateConstructorUsedError;
-  @JsonKey(name: 'weight_kg')
+  @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
   double? get weightKg => throw _privateConstructorUsedError;
   String get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_pyramid')
@@ -838,7 +838,7 @@ abstract class $SessionExerciseCopyWith<$Res> {
       @JsonKey(name: 'exercise_muscle_group') String? exerciseMuscleGroup,
       @JsonKey(name: 'exercise_muscle_group_display')
       String? exerciseMuscleGroupDisplay,
-      @JsonKey(name: 'weight_kg') double? weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) double? weightKg,
       String notes,
       @JsonKey(name: 'is_pyramid') bool isPyramid,
       @JsonKey(name: 'set_details') Map<String, dynamic>? setDetails,
@@ -974,7 +974,7 @@ abstract class _$$SessionExerciseImplCopyWith<$Res>
       @JsonKey(name: 'exercise_muscle_group') String? exerciseMuscleGroup,
       @JsonKey(name: 'exercise_muscle_group_display')
       String? exerciseMuscleGroupDisplay,
-      @JsonKey(name: 'weight_kg') double? weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) double? weightKg,
       String notes,
       @JsonKey(name: 'is_pyramid') bool isPyramid,
       @JsonKey(name: 'set_details') Map<String, dynamic>? setDetails,
@@ -1103,7 +1103,7 @@ class _$SessionExerciseImpl implements _SessionExercise {
       @JsonKey(name: 'exercise_muscle_group') this.exerciseMuscleGroup,
       @JsonKey(name: 'exercise_muscle_group_display')
       this.exerciseMuscleGroupDisplay,
-      @JsonKey(name: 'weight_kg') this.weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) this.weightKg,
       this.notes = '',
       @JsonKey(name: 'is_pyramid') this.isPyramid = false,
       @JsonKey(name: 'set_details') final Map<String, dynamic>? setDetails,
@@ -1147,7 +1147,7 @@ class _$SessionExerciseImpl implements _SessionExercise {
   @JsonKey(name: 'exercise_muscle_group_display')
   final String? exerciseMuscleGroupDisplay;
   @override
-  @JsonKey(name: 'weight_kg')
+  @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
   final double? weightKg;
   @override
   @JsonKey()
@@ -1273,7 +1273,8 @@ abstract class _SessionExercise implements SessionExercise {
       @JsonKey(name: 'exercise_muscle_group') final String? exerciseMuscleGroup,
       @JsonKey(name: 'exercise_muscle_group_display')
       final String? exerciseMuscleGroupDisplay,
-      @JsonKey(name: 'weight_kg') final double? weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
+      final double? weightKg,
       final String notes,
       @JsonKey(name: 'is_pyramid') final bool isPyramid,
       @JsonKey(name: 'set_details') final Map<String, dynamic>? setDetails,
@@ -1316,7 +1317,7 @@ abstract class _SessionExercise implements SessionExercise {
   @JsonKey(name: 'exercise_muscle_group_display')
   String? get exerciseMuscleGroupDisplay;
   @override
-  @JsonKey(name: 'weight_kg')
+  @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
   double? get weightKg;
   @override
   String get notes;
@@ -1351,7 +1352,7 @@ mixin _$WeeklyProgression {
   String get reps => throw _privateConstructorUsedError;
   @JsonKey(name: 'rest_time')
   String get restTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'weight_kg')
+  @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
   double? get weightKg => throw _privateConstructorUsedError;
   String get notes => throw _privateConstructorUsedError;
 
@@ -1377,7 +1378,7 @@ abstract class $WeeklyProgressionCopyWith<$Res> {
       int sets,
       String reps,
       @JsonKey(name: 'rest_time') String restTime,
-      @JsonKey(name: 'weight_kg') double? weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) double? weightKg,
       String notes});
 }
 
@@ -1451,7 +1452,7 @@ abstract class _$$WeeklyProgressionImplCopyWith<$Res>
       int sets,
       String reps,
       @JsonKey(name: 'rest_time') String restTime,
-      @JsonKey(name: 'weight_kg') double? weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) double? weightKg,
       String notes});
 }
 
@@ -1518,7 +1519,7 @@ class _$WeeklyProgressionImpl implements _WeeklyProgression {
       required this.sets,
       required this.reps,
       @JsonKey(name: 'rest_time') required this.restTime,
-      @JsonKey(name: 'weight_kg') this.weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) this.weightKg,
       this.notes = ''});
 
   factory _$WeeklyProgressionImpl.fromJson(Map<String, dynamic> json) =>
@@ -1537,7 +1538,7 @@ class _$WeeklyProgressionImpl implements _WeeklyProgression {
   @JsonKey(name: 'rest_time')
   final String restTime;
   @override
-  @JsonKey(name: 'weight_kg')
+  @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
   final double? weightKg;
   @override
   @JsonKey()
@@ -1594,7 +1595,8 @@ abstract class _WeeklyProgression implements WeeklyProgression {
       required final int sets,
       required final String reps,
       @JsonKey(name: 'rest_time') required final String restTime,
-      @JsonKey(name: 'weight_kg') final double? weightKg,
+      @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
+      final double? weightKg,
       final String notes}) = _$WeeklyProgressionImpl;
 
   factory _WeeklyProgression.fromJson(Map<String, dynamic> json) =
@@ -1613,7 +1615,7 @@ abstract class _WeeklyProgression implements WeeklyProgression {
   @JsonKey(name: 'rest_time')
   String get restTime;
   @override
-  @JsonKey(name: 'weight_kg')
+  @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson)
   double? get weightKg;
   @override
   String get notes;

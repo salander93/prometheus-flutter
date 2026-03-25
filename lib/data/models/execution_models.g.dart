@@ -77,8 +77,8 @@ _$ExerciseSetImpl _$$ExerciseSetImplFromJson(Map<String, dynamic> json) =>
       setNumber: (json['set_number'] as num).toInt(),
       targetReps: (json['target_reps'] as num?)?.toInt(),
       actualReps: (json['actual_reps'] as num?)?.toInt(),
-      targetWeight: (json['target_weight'] as num?)?.toDouble(),
-      actualWeight: (json['actual_weight'] as num?)?.toDouble(),
+      targetWeight: _doubleFromJson(json['target_weight']),
+      actualWeight: _doubleFromJson(json['actual_weight']),
       restDuration: (json['rest_duration'] as num?)?.toInt(),
       completedAt: json['completed_at'] as String?,
     );

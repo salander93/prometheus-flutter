@@ -58,7 +58,7 @@ class SessionExercise with _$SessionExercise {
     @JsonKey(name: 'exercise_muscle_group') String? exerciseMuscleGroup,
     @JsonKey(name: 'exercise_muscle_group_display')
     String? exerciseMuscleGroupDisplay,
-    @JsonKey(name: 'weight_kg') double? weightKg,
+    @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) double? weightKg,
     @Default('') String notes,
     @JsonKey(name: 'is_pyramid') @Default(false) bool isPyramid,
     @JsonKey(name: 'set_details') Map<String, dynamic>? setDetails,
@@ -79,10 +79,17 @@ class WeeklyProgression with _$WeeklyProgression {
     required int sets,
     required String reps,
     @JsonKey(name: 'rest_time') required String restTime,
-    @JsonKey(name: 'weight_kg') double? weightKg,
+    @JsonKey(name: 'weight_kg', fromJson: _doubleFromJson) double? weightKg,
     @Default('') String notes,
   }) = _WeeklyProgression;
 
   factory WeeklyProgression.fromJson(Map<String, dynamic> json) =>
       _$WeeklyProgressionFromJson(json);
+}
+
+double? _doubleFromJson(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
 }

@@ -761,9 +761,9 @@ mixin _$ExerciseSet {
   int? get targetReps => throw _privateConstructorUsedError;
   @JsonKey(name: 'actual_reps')
   int? get actualReps => throw _privateConstructorUsedError;
-  @JsonKey(name: 'target_weight')
+  @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
   double? get targetWeight => throw _privateConstructorUsedError;
-  @JsonKey(name: 'actual_weight')
+  @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
   double? get actualWeight => throw _privateConstructorUsedError;
   @JsonKey(name: 'rest_duration')
   int? get restDuration => throw _privateConstructorUsedError;
@@ -791,8 +791,10 @@ abstract class $ExerciseSetCopyWith<$Res> {
       @JsonKey(name: 'set_number') int setNumber,
       @JsonKey(name: 'target_reps') int? targetReps,
       @JsonKey(name: 'actual_reps') int? actualReps,
-      @JsonKey(name: 'target_weight') double? targetWeight,
-      @JsonKey(name: 'actual_weight') double? actualWeight,
+      @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
+      double? targetWeight,
+      @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
+      double? actualWeight,
       @JsonKey(name: 'rest_duration') int? restDuration,
       @JsonKey(name: 'completed_at') String? completedAt});
 }
@@ -871,8 +873,10 @@ abstract class _$$ExerciseSetImplCopyWith<$Res>
       @JsonKey(name: 'set_number') int setNumber,
       @JsonKey(name: 'target_reps') int? targetReps,
       @JsonKey(name: 'actual_reps') int? actualReps,
-      @JsonKey(name: 'target_weight') double? targetWeight,
-      @JsonKey(name: 'actual_weight') double? actualWeight,
+      @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
+      double? targetWeight,
+      @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
+      double? actualWeight,
       @JsonKey(name: 'rest_duration') int? restDuration,
       @JsonKey(name: 'completed_at') String? completedAt});
 }
@@ -944,8 +948,10 @@ class _$ExerciseSetImpl implements _ExerciseSet {
       @JsonKey(name: 'set_number') required this.setNumber,
       @JsonKey(name: 'target_reps') this.targetReps,
       @JsonKey(name: 'actual_reps') this.actualReps,
-      @JsonKey(name: 'target_weight') this.targetWeight,
-      @JsonKey(name: 'actual_weight') this.actualWeight,
+      @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
+      this.targetWeight,
+      @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
+      this.actualWeight,
       @JsonKey(name: 'rest_duration') this.restDuration,
       @JsonKey(name: 'completed_at') this.completedAt});
 
@@ -964,10 +970,10 @@ class _$ExerciseSetImpl implements _ExerciseSet {
   @JsonKey(name: 'actual_reps')
   final int? actualReps;
   @override
-  @JsonKey(name: 'target_weight')
+  @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
   final double? targetWeight;
   @override
-  @JsonKey(name: 'actual_weight')
+  @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
   final double? actualWeight;
   @override
   @JsonKey(name: 'rest_duration')
@@ -1030,8 +1036,10 @@ abstract class _ExerciseSet implements ExerciseSet {
           @JsonKey(name: 'set_number') required final int setNumber,
           @JsonKey(name: 'target_reps') final int? targetReps,
           @JsonKey(name: 'actual_reps') final int? actualReps,
-          @JsonKey(name: 'target_weight') final double? targetWeight,
-          @JsonKey(name: 'actual_weight') final double? actualWeight,
+          @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
+          final double? targetWeight,
+          @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
+          final double? actualWeight,
           @JsonKey(name: 'rest_duration') final int? restDuration,
           @JsonKey(name: 'completed_at') final String? completedAt}) =
       _$ExerciseSetImpl;
@@ -1051,10 +1059,10 @@ abstract class _ExerciseSet implements ExerciseSet {
   @JsonKey(name: 'actual_reps')
   int? get actualReps;
   @override
-  @JsonKey(name: 'target_weight')
+  @JsonKey(name: 'target_weight', fromJson: _doubleFromJson)
   double? get targetWeight;
   @override
-  @JsonKey(name: 'actual_weight')
+  @JsonKey(name: 'actual_weight', fromJson: _doubleFromJson)
   double? get actualWeight;
   @override
   @JsonKey(name: 'rest_duration')
