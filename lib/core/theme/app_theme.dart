@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 
 class AppTheme {
@@ -49,10 +50,15 @@ class AppTheme {
       shadow: Colors.black,
     );
 
+    final baseTextTheme = GoogleFonts.interTextTheme(
+      ThemeData(brightness: Brightness.dark).textTheme,
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: colorScheme,
+      fontFamily: GoogleFonts.inter().fontFamily,
       scaffoldBackgroundColor: AppColors.backgroundBase,
 
       // -----------------------------------------------------------------------

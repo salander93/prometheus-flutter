@@ -11,7 +11,6 @@ import 'package:palestra/presentation/auth/providers/auth_providers.dart';
 import 'package:palestra/presentation/shared/providers/notification_providers.dart';
 import 'package:palestra/presentation/shared/providers/workout_providers.dart';
 import 'package:palestra/presentation/shared/widgets/flame_icon.dart';
-import 'package:palestra/presentation/workouts/widgets/flame_widget.dart';
 import 'package:palestra/presentation/shared/widgets/offline_banner.dart';
 
 class _NavDestinationSpec {
@@ -158,6 +157,7 @@ class _AppNavigationShellState extends ConsumerState<AppNavigationShell> {
     final unreadCount = unreadAsync.valueOrNull ?? 0;
 
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
         title: ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
@@ -333,17 +333,12 @@ class _PillNavItem extends StatelessWidget {
         : AppColors.textSecondary;
 
     Widget iconWidget;
-    if (useFlameIcon && hasActiveWorkout) {
-      // Animated flame when workout is active
-      iconWidget = const FlameWidget(
-        scale: 0.7,
-        opacity: 0.9,
-        speedSeconds: 0.35,
-        glow: 0.5,
-        size: 26,
-      );
-    } else if (useFlameIcon) {
-      iconWidget = FlameIcon(size: 24, color: iconColor);
+    if (useFlameIcon) {
+      // Same FlameIcon, but lit up orange with glow when workout active
+      final flameColor = hasActiveWorkout
+          ? AppColors.primary
+          : iconColor;
+      iconWidget = FlameIcon(size: 24, color: flameColor);
     } else {
       iconWidget = Icon(
         isSelected ? selectedIcon : icon,
