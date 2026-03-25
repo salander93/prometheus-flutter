@@ -420,10 +420,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => _confirmExit(context),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           execution.sessionName ?? 'Allenamento',
           overflow: TextOverflow.ellipsis,

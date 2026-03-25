@@ -143,19 +143,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ── Fullscreen workout route (no shell) ─────────────────────────────
-      GoRoute(
-        path: '/workout/:executionId',
-        pageBuilder: (context, state) => _buildPage(
-          LiveWorkoutScreen(
-            executionId: int.parse(
-              state.pathParameters['executionId']!,
-            ),
-          ),
-          state,
-        ),
-      ),
-
       // ── Authenticated shell routes ───────────────────────────────────────
       ShellRoute(
         builder: (context, state, child) =>
@@ -165,6 +152,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/dashboard',
             pageBuilder: (context, state) =>
                 _buildPage(const DashboardScreen(), state),
+          ),
+          // Workout inside shell so bottom nav stays visible
+          GoRoute(
+            path: '/workout/:executionId',
+            pageBuilder: (context, state) => _buildPage(
+              LiveWorkoutScreen(
+                executionId: int.parse(
+                  state.pathParameters['executionId']!,
+                ),
+              ),
+              state,
+            ),
           ),
           GoRoute(
             path: '/plans',
