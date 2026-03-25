@@ -74,9 +74,14 @@ class _ActiveWorkoutCardState extends State<ActiveWorkoutCard>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: glowOpacity * 0.3),
-                  blurRadius: 16 + (_glowController.value * 8),
-                  spreadRadius: -2,
+                  color: AppColors.primary.withValues(alpha: glowOpacity * 0.5),
+                  blurRadius: 20 + (_glowController.value * 12),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: glowOpacity * 0.2),
+                  blurRadius: 40 + (_glowController.value * 16),
+                  spreadRadius: -4,
                 ),
               ],
               gradient: const LinearGradient(
@@ -175,13 +180,28 @@ class _ActiveWorkoutCardState extends State<ActiveWorkoutCard>
                         ),
                       if (widget.execution.weekNumber != null)
                         const SizedBox(width: 10),
-                      _Badge(
-                        text: _formattedTime,
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.18),
-                        textColor: AppColors.primary,
-                        borderColor: AppColors.primary.withValues(alpha: 0.4),
-                        bold: true,
-                        tabularFigures: true,
+                      // Timer badge — larger, bordered, monospace like old PWA
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.6),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Text(
+                          _formattedTime,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                            fontFamily: 'monospace',
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            letterSpacing: 2,
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -334,7 +334,6 @@ class _PillNavItem extends StatelessWidget {
 
     Widget iconWidget;
     if (useFlameIcon) {
-      // Same FlameIcon, but lit up orange with glow when workout active
       final flameColor = hasActiveWorkout
           ? AppColors.primary
           : iconColor;
@@ -344,6 +343,34 @@ class _PillNavItem extends StatelessWidget {
         isSelected ? selectedIcon : icon,
         size: 24,
         color: iconColor,
+      );
+    }
+
+    // Determine decoration: selected bg, or flame glow when active
+    BoxDecoration? decoration;
+    if (isSelected) {
+      decoration = BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66FF6B35),
+            blurRadius: 15,
+            offset: Offset(0, 4),
+          ),
+        ],
+      );
+    } else if (useFlameIcon && hasActiveWorkout) {
+      // Glow effect around flame when workout active but tab not selected
+      decoration = BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.4),
+            blurRadius: 12,
+            spreadRadius: -2,
+          ),
+        ],
       );
     }
 
@@ -358,19 +385,7 @@ class _PillNavItem extends StatelessWidget {
             curve: Curves.easeInOut,
             width: 44,
             height: 40,
-            decoration: isSelected
-                ? BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x66FF6B35),
-                        blurRadius: 15,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  )
-                : null,
+            decoration: decoration,
             child: Center(child: iconWidget),
           ),
         ),
