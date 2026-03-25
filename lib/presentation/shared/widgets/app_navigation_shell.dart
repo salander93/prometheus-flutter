@@ -307,7 +307,7 @@ class _FloatingPillNav extends StatelessWidget {
   }
 }
 
-class _PillNavItem extends StatelessWidget {
+class _PillNavItem extends StatefulWidget {
   const _PillNavItem({
     required this.icon,
     required this.selectedIcon,
@@ -327,28 +327,98 @@ class _PillNavItem extends StatelessWidget {
   final bool hasActiveWorkout;
 
   @override
+  State<_PillNavItem> createState() => _PillNavItemState();
+}
+
+class _PillNavItemState extends State<_PillNavItem>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _flameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateFlameAnimation();
+  }
+
+  @override
+  void didUpdateWidget(_PillNavItem old) {
+    super.didUpdateWidget(old);
+    if (old.hasActiveWorkout != widget.hasActiveWorkout) {
+      _updateFlameAnimation();
+    }
+  }
+
+  void _updateFlameAnimation() {
+    if (widget.useFlameIcon && widget.hasActiveWorkout) {
+      _flameController ??= AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
+      _flameController!.repeat(reverse: true);
+    } else {
+      _flameController?.stop();
+      _flameController?.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _flameController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final iconColor = isSelected
+    final iconColor = widget.isSelected
         ? Colors.white
         : AppColors.textSecondary;
 
     Widget iconWidget;
-    if (useFlameIcon) {
-      final flameColor = hasActiveWorkout
-          ? AppColors.primary
-          : iconColor;
-      iconWidget = FlameIcon(size: 24, color: flameColor);
+    if (widget.useFlameIcon && widget.hasActiveWorkout && _flameController != null) {
+      // Animated flame matching PWA: scale + translateY + orange/gold glow
+      iconWidget = AnimatedBuilder(
+        animation: _flameController!,
+        builder: (context, child) {
+          final t = _flameController!.value;
+          final scale = 1.0 + (t * 0.12); // 1.0 → 1.12
+          final translateY = -t * 2.0; // 0 → -2px
+          final glowOpacity = 0.4 + (t * 0.4);
+          return Transform.translate(
+            offset: Offset(0, translateY),
+            child: Transform.scale(
+              scale: scale,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: glowOpacity),
+                      blurRadius: 4 + (t * 4),
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFFF7C331).withValues(alpha: glowOpacity * 0.6),
+                      blurRadius: 8 + (t * 7),
+                    ),
+                  ],
+                ),
+                child: FlameIcon(size: 24, color: AppColors.primary),
+              ),
+            ),
+          );
+        },
+      );
+    } else if (widget.useFlameIcon) {
+      iconWidget = FlameIcon(size: 24, color: iconColor);
     } else {
       iconWidget = Icon(
-        isSelected ? selectedIcon : icon,
+        widget.isSelected ? widget.selectedIcon : widget.icon,
         size: 24,
         color: iconColor,
       );
     }
 
-    // Determine decoration: selected bg, or flame glow when active
     BoxDecoration? decoration;
-    if (isSelected) {
+    if (widget.isSelected) {
       decoration = BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(14),
@@ -360,22 +430,10 @@ class _PillNavItem extends StatelessWidget {
           ),
         ],
       );
-    } else if (useFlameIcon && hasActiveWorkout) {
-      // Glow effect around flame when workout active but tab not selected
-      decoration = BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.4),
-            blurRadius: 12,
-            spreadRadius: -2,
-          ),
-        ],
-      );
     }
 
     return InkWell(
-      onTap: onTap,
+      onTap: widget.onTap,
       borderRadius: BorderRadius.circular(16),
       child: SizedBox(
         height: 48,

@@ -96,28 +96,28 @@ class _ActiveWorkoutCardState extends State<ActiveWorkoutCard>
         ),
         child: Stack(
           children: [
-            // Decorative circle (top-right, like old PWA)
+            // Decorative circles (top-right, like old PWA)
             Positioned(
-              top: -30,
-              right: -20,
+              top: -20,
+              right: -15,
               child: Container(
-                width: 120,
-                height: 120,
+                width: 130,
+                height: 130,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: AppColors.primary.withValues(alpha: 0.18),
                 ),
               ),
             ),
             Positioned(
-              top: 10,
-              right: 20,
+              top: 15,
+              right: 30,
               child: Container(
-                width: 60,
-                height: 60,
+                width: 65,
+                height: 65,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: AppColors.primary.withValues(alpha: 0.12),
                 ),
               ),
             ),
@@ -180,26 +180,21 @@ class _ActiveWorkoutCardState extends State<ActiveWorkoutCard>
                         ),
                       if (widget.execution.weekNumber != null)
                         const SizedBox(width: 10),
-                      // Timer badge — larger, bordered, monospace like old PWA
+                      // Timer badge — matches PWA: semi-transparent orange bg, no border
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
+                          color: const Color(0x26FF6B35), // rgba(255,107,53,0.15)
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.6),
-                            width: 1.5,
-                          ),
                         ),
                         child: Text(
                           _formattedTime,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.primary,
                             fontFamily: 'monospace',
                             fontFeatures: [FontFeature.tabularFigures()],
-                            letterSpacing: 2,
                           ),
                         ),
                       ),
