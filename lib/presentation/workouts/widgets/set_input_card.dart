@@ -39,28 +39,11 @@ class SetInputCard extends StatelessWidget {
     }
 
     if (isActive) {
-      return Dismissible(
-        key: ValueKey('set_$setNumber'),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (_) async {
-          onComplete?.call();
-          return false; // prevent actual removal; let the parent rebuild
-        },
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(Icons.check, color: AppColors.success),
-        ),
-        child: _ActiveCard(
-          setNumber: setNumber,
-          repsController: repsController,
-          weightController: weightController,
-          onComplete: onComplete,
-        ),
+      return _ActiveCard(
+        setNumber: setNumber,
+        repsController: repsController,
+        weightController: weightController,
+        onComplete: onComplete,
       );
     }
 
