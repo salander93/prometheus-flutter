@@ -127,7 +127,7 @@ class _ExercisePage extends StatelessWidget {
 
         // Exercise name
         Text(
-          exercise.exerciseName,
+          exercise.exerciseName ?? 'Esercizio',
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),

@@ -398,7 +398,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
     if (_showNextExerciseCountdown && wState.currentPage < exercises.length - 1) {
       final nextExe = exercises[wState.currentPage + 1];
       nextCountdown = NextExerciseCountdown(
-        exerciseName: nextExe.exerciseName,
+        exerciseName: nextExe.exerciseName ?? 'Esercizio',
         exerciseInfo: '${nextExe.sets.length} serie',
         isLastExercise: wState.currentPage + 1 == exercises.length - 1,
         onComplete: _advanceToNextExercise,
@@ -556,7 +556,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
           (e) => e.id == id,
           orElse: () => exercises.first,
         )
-        .exerciseName;
+        .exerciseName ?? 'Esercizio';
   }
 }
 
