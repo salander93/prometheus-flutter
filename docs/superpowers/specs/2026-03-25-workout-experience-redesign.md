@@ -18,8 +18,11 @@ Prometheus Flutter is migrated from a Vanilla JS PWA. The live workout system is
 ## Non-Goals
 
 - Intelligent weight suggestions (deferred)
-- Backend API changes (use existing endpoints)
 - Changes to non-workout screens beyond Dashboard
+
+## Assumptions
+
+- Minor backend API changes are acceptable if needed (e.g., adding fields to existing endpoints), but no new endpoints or major backend work.
 
 ---
 
@@ -32,17 +35,21 @@ Prometheus Flutter is migrated from a Vanilla JS PWA. The live workout system is
 - Wire `ActiveWorkoutCard.onResume` to navigate to `/workout/{executionId}`
 - Wire `ActiveWorkoutCard.onStart` to open a bottom sheet (replaces `SessionSelectorScreen`)
 - Bottom sheet: pre-filled session + week from `/api/workouts/executions/suggest/`, one tap "Inizia" to start
-- Add `RecentActivityList` widget to client dashboard showing last 3-5 completed workouts
-- Each activity card shows: session name, relative date, duration, set count, feeling emoji
+- Add `ClientRecentActivityList` widget to client dashboard showing last 3-5 completed workouts (note: `RecentActivityList` already exists but is trainer-facing, showing `clientName` as primary label — the client version needs different display: session name, relative date, duration, set count, feeling emoji)
 - "Vedi tutto" link opens `ActivityScreen`
+- Multi-plan handling: if user has multiple active plans, the "Inizia" card shows the first active plan (from suggestion API). User can access other plans via Plans List screen as today.
+
+**Data notes:**
+- `sessionSuggestionProvider` is currently defined locally in `session_selector_screen.dart` — must be extracted to a shared providers file (e.g., `workout_providers.dart`)
+- `ActivityLogSummary` model lacks `sessionName` and set count fields — model needs extending (minor backend change: add these fields to the existing `/api/workouts/executions/` list response)
 
 **Files:**
 - `lib/presentation/dashboard/screens/dashboard_screen.dart` — add storico section, wire buttons
 - `lib/presentation/dashboard/widgets/active_workout_card.dart` — wire navigation
-- `lib/presentation/dashboard/widgets/recent_activity_list.dart` — new widget
+- `lib/presentation/dashboard/widgets/client_recent_activity_list.dart` — new widget (separate from trainer's `recent_activity_list.dart`)
 - `lib/presentation/workouts/widgets/start_workout_sheet.dart` — new bottom sheet
 
-**Data:** Uses existing `activeExecutionProvider`, `workoutPlansProvider`, `sessionSuggestionProvider`, and `WorkoutRemoteDatasource.getExecutions()` for history.
+**Data:** Uses existing `activeExecutionProvider`, `workoutPlansProvider`, `sessionSuggestionProvider` (relocated), and `WorkoutRemoteDatasource.getExecutions()` for history.
 
 ---
 
@@ -52,10 +59,10 @@ Prometheus Flutter is migrated from a Vanilla JS PWA. The live workout system is
 
 **Solution:**
 
-`FlameWidget` — CustomPainter with animated layers:
+`FlameWidget` — self-contained `StatefulWidget` with `TickerProviderStateMixin` (needs multiple tickers), using CustomPainter for rendering:
 
 - **4 concentric layers:** outer (deep orange #d84315→#ffb74d), middle (orange-yellow #ff5722→#ffeb3b), inner (yellow #ff9800→#fff59d), core (white-yellow #ffc107→#ffffff)
-- **4 AnimationControllers** staggered for wave motion (matching PWA's `flameWave1-4` keyframes)
+- **4 AnimationControllers** staggered for wave motion (matching PWA's `flameWave1-4` keyframes), managed internally by the widget
 - **5 spark particles** with independent rise + fade + horizontal drift animations
 - **Radial glow** at base via `MaskFilter.blur`
 
@@ -91,9 +98,9 @@ Prometheus Flutter is migrated from a Vanilla JS PWA. The live workout system is
 
 `RestTimerNotifier` — Riverpod StateNotifier with 3 states:
 
-1. **Counting** (normal): orange ring, MM:SS countdown, auto-starts after set completion using `ExerciseSet.restDuration`
+1. **Counting** (normal): orange ring, MM:SS countdown, auto-starts after set completion using `ExerciseSet.restDuration` (nullable `int?` — if null or 0, timer does not start)
 2. **Urgent** (≤5 seconds): red ring with glow + drop shadow, red text, beep tick audio every second, light haptic every second
-3. **Overtime** (timer expired, user still resting): green ring fully filled, counts up with "+0:12" format, tracks `actualRestDuration` for API submission
+3. **Overtime** (timer expired, user still resting): green ring fully filled, counts up with "+0:12" format, tracks `actualRestDuration` locally (note: `ExerciseSet` model currently lacks this field — requires minor backend addition to accept `rest_duration` on the set PATCH endpoint, or store client-side only for now)
 
 `RestTimerOverlay` — inline timer widget:
 - Circular ring (160px) with progress arc, color changes per state
@@ -108,6 +115,7 @@ Prometheus Flutter is migrated from a Vanilla JS PWA. The live workout system is
 - Position: bottom-right, above navigation
 - Inherits state colors (orange/red/green)
 - Tap navigates back to the exercise with active timer
+- Implementation: `Stack` wrapping the `Scaffold` body in `LiveWorkoutScreen`, with `Positioned` widget for the floating timer. Visibility controlled by `RestTimerNotifier` state (show when timer active AND `currentPage != timerExercisePage`)
 
 **Files:**
 - `lib/presentation/workouts/providers/rest_timer_provider.dart` — new
@@ -155,6 +163,7 @@ UI — `NextExerciseCountdown` widget:
   - "Salta Recupero" — skips rest timer
 - Updates in real-time (timer countdown, exercise changes, progress)
 - Implementation: `flutter_local_notifications` + `flutter_foreground_task` packages
+- Android manifest changes required: `FOREGROUND_SERVICE`, `WAKE_LOCK`, `POST_NOTIFICATIONS` (Android 13+) permissions, foreground service type declaration
 - Graceful degradation: noop on web/PWA (check `kIsWeb`)
 
 **Files:**
@@ -230,6 +239,7 @@ Gestures:
 - Timer expired: longer ding sound
 - Workout completed: celebration sound
 - Implementation: `audioplayers` package with bundled asset audio files
+- Audio assets in `assets/audio/`: `tick.wav`, `ding.wav`, `celebration.wav` (add to `pubspec.yaml` assets)
 - Toggleable from Settings screen (independent from haptic toggle)
 
 **Files:**
@@ -293,7 +303,7 @@ FlameProgressNotifier (StateNotifier<FlameProgressState>)
 - `NextExerciseCountdown`
 - `ProgressIndicatorBar`
 - `StartWorkoutSheet` (bottom sheet)
-- `RecentActivityList` (dashboard)
+- `ClientRecentActivityList` (dashboard)
 - `WorkoutNotificationService` (Android foreground)
 - `HapticService` + `AudioService`
 
@@ -302,6 +312,13 @@ FlameProgressNotifier (StateNotifier<FlameProgressState>)
 - `audioplayers` — audio playback for timer sounds
 - `flutter_foreground_task` — Android foreground service
 - `flutter_local_notifications` — notification display (may already be present for FCM)
+
+### New Assets
+
+- `assets/audio/tick.wav` — short beep for urgent timer tick
+- `assets/audio/ding.wav` — longer sound for timer expired
+- `assets/audio/celebration.wav` — workout completion sound
+- Add `- assets/audio/` to `pubspec.yaml` assets section
 
 ---
 
@@ -329,8 +346,7 @@ lib/presentation/workouts/
 │   ├── rest_timer_provider.dart
 │   └── flame_progress_provider.dart
 ├── screens/
-│   ├── live_workout_screen.dart          # Thin orchestrator
-│   └── workout_completion_screen.dart
+│   └── live_workout_screen.dart          # Thin orchestrator (completion view remains inline as _CompletionView)
 ├── widgets/
 │   ├── exercise_carousel.dart
 │   ├── set_input_card.dart
@@ -348,7 +364,8 @@ lib/presentation/workouts/
 lib/presentation/dashboard/
 ├── widgets/
 │   ├── active_workout_card.dart          # Updated
-│   └── recent_activity_list.dart         # New
+│   ├── recent_activity_list.dart         # Existing (trainer-facing)
+│   └── client_recent_activity_list.dart  # New (client-facing)
 └── screens/
     └── dashboard_screen.dart             # Updated
 ```
