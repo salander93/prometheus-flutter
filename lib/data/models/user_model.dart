@@ -17,7 +17,7 @@ class UserModel with _$UserModel {
     String? photo,
     String? bio,
     @JsonKey(name: 'birth_date') String? birthDate,
-    double? height,
+    @JsonKey(fromJson: _doubleFromJson) double? height,
     int? age,
     @JsonKey(name: 'share_body_checks_with_trainers')
     @Default(false)
@@ -26,4 +26,11 @@ class UserModel with _$UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
+}
+
+double? _doubleFromJson(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
 }

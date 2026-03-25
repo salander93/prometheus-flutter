@@ -35,6 +35,7 @@ mixin _$UserModel {
   String? get bio => throw _privateConstructorUsedError;
   @JsonKey(name: 'birth_date')
   String? get birthDate => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _doubleFromJson)
   double? get height => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
   @JsonKey(name: 'share_body_checks_with_trainers')
@@ -67,7 +68,7 @@ abstract class $UserModelCopyWith<$Res> {
       String? photo,
       String? bio,
       @JsonKey(name: 'birth_date') String? birthDate,
-      double? height,
+      @JsonKey(fromJson: _doubleFromJson) double? height,
       int? age,
       @JsonKey(name: 'share_body_checks_with_trainers')
       bool shareBodyChecksWithTrainers});
@@ -184,7 +185,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String? photo,
       String? bio,
       @JsonKey(name: 'birth_date') String? birthDate,
-      double? height,
+      @JsonKey(fromJson: _doubleFromJson) double? height,
       int? age,
       @JsonKey(name: 'share_body_checks_with_trainers')
       bool shareBodyChecksWithTrainers});
@@ -294,7 +295,7 @@ class _$UserModelImpl implements _UserModel {
       this.photo,
       this.bio,
       @JsonKey(name: 'birth_date') this.birthDate,
-      this.height,
+      @JsonKey(fromJson: _doubleFromJson) this.height,
       this.age,
       @JsonKey(name: 'share_body_checks_with_trainers')
       this.shareBodyChecksWithTrainers = false});
@@ -329,6 +330,7 @@ class _$UserModelImpl implements _UserModel {
   @JsonKey(name: 'birth_date')
   final String? birthDate;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   final double? height;
   @override
   final int? age;
@@ -418,7 +420,7 @@ abstract class _UserModel implements UserModel {
       final String? photo,
       final String? bio,
       @JsonKey(name: 'birth_date') final String? birthDate,
-      final double? height,
+      @JsonKey(fromJson: _doubleFromJson) final double? height,
       final int? age,
       @JsonKey(name: 'share_body_checks_with_trainers')
       final bool shareBodyChecksWithTrainers}) = _$UserModelImpl;
@@ -453,6 +455,7 @@ abstract class _UserModel implements UserModel {
   @JsonKey(name: 'birth_date')
   String? get birthDate;
   @override
+  @JsonKey(fromJson: _doubleFromJson)
   double? get height;
   @override
   int? get age;

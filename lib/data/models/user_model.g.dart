@@ -19,7 +19,7 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       photo: json['photo'] as String?,
       bio: json['bio'] as String?,
       birthDate: json['birth_date'] as String?,
-      height: (json['height'] as num?)?.toDouble(),
+      height: _doubleFromJson(json['height']),
       age: (json['age'] as num?)?.toInt(),
       shareBodyChecksWithTrainers:
           json['share_body_checks_with_trainers'] as bool? ?? false,
