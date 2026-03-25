@@ -200,18 +200,22 @@ class _ActiveCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          _CompactInput(
-            label: 'RIP',
-            controller: repsController,
-            decimal: false,
+          Expanded(
+            child: _CompactInput(
+              label: 'RIP',
+              controller: repsController,
+              decimal: false,
+            ),
           ),
           const SizedBox(width: 8),
-          _CompactInput(
-            label: 'KG',
-            controller: weightController,
-            decimal: true,
+          Expanded(
+            child: _CompactInput(
+              label: 'KG',
+              controller: weightController,
+              decimal: true,
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           FilledButton(
             onPressed: onComplete,
             style: FilledButton.styleFrom(
