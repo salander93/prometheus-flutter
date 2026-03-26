@@ -17,7 +17,9 @@ class ActivityScreen extends ConsumerWidget {
     final userAsync = ref.watch(currentUserProvider);
     final logsAsync = ref.watch(activityLogsProvider);
     final activeExecution = ref.watch(activeExecutionProvider).valueOrNull;
-    final plans = ref.watch(workoutPlansProvider).valueOrNull ?? [];
+    final allPlans = ref.watch(workoutPlansProvider).valueOrNull ?? [];
+    // Only show plans that are active (sessions checked at sheet level)
+    final plans = allPlans.where((p) => p.isActive).toList();
 
     final isTrainer = userAsync.valueOrNull?.role == 'TRAINER';
 
@@ -26,7 +28,7 @@ class ActivityScreen extends ConsumerWidget {
         logs: logs,
         isTrainer: isTrainer,
         activeExecution: isTrainer ? null : activeExecution,
-        activePlan: isTrainer || plans.isEmpty ? null : plans.first,
+        activePlans: isTrainer ? [] : plans,
         onRefresh: () async {
           ref.invalidate(activityLogsProvider);
           ref.invalidate(activeExecutionProvider);
@@ -50,14 +52,14 @@ class _LogsList extends StatelessWidget {
     required this.isTrainer,
     required this.onRefresh,
     this.activeExecution,
-    this.activePlan,
+    this.activePlans = const [],
   });
 
   final List<ActivityLogSummary> logs;
   final bool isTrainer;
   final Future<void> Function() onRefresh;
   final WorkoutExecution? activeExecution;
-  final WorkoutPlanSummary? activePlan;
+  final List<WorkoutPlanSummary> activePlans;
 
   @override
   Widget build(BuildContext context) {
@@ -75,19 +77,31 @@ class _LogsList extends StatelessWidget {
             const SizedBox(height: 16),
           ],
 
-          // Start workout button (if no active workout and has a plan)
-          if (activeExecution == null && activePlan != null) ...[
-            _StartWorkoutButton(
-              plan: activePlan!,
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => StartWorkoutSheet(planId: activePlan!.id),
-                );
-              },
+          // Start workout buttons (if no active workout and has plans)
+          if (activeExecution == null && activePlans.isNotEmpty) ...[
+            Text(
+              'Inizia Allenamento',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
             ),
+            const SizedBox(height: 12),
+            ...activePlans.map((plan) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _StartWorkoutButton(
+                plan: plan,
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => StartWorkoutSheet(planId: plan.id),
+                  );
+                },
+              ),
+            )),
             const SizedBox(height: 16),
           ],
 
@@ -203,19 +217,7 @@ class _StartWorkoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Inizia Allenamento',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        GestureDetector(
+    return GestureDetector(
           onTap: onTap,
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -264,7 +266,6 @@ class _StartWorkoutButton extends StatelessWidget {
             ),
           ),
         ),
-      ],
     );
   }
 }

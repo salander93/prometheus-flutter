@@ -94,6 +94,38 @@ class _StartWorkoutSheetState extends ConsumerState<StartWorkoutSheet> {
                   ))
               .toList();
 
+          if (sessionItems.isEmpty) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textMuted,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Icon(Icons.info_outline, color: AppColors.textMuted, size: 40),
+                const SizedBox(height: 12),
+                const Text(
+                  'Questa scheda non ha sessioni',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Chiedi al tuo trainer di aggiungere sessioni a "${suggestion.workoutPlan.name}"',
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+              ],
+            );
+          }
+
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
