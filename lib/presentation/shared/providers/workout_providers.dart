@@ -22,18 +22,8 @@ final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
 
 final workoutPlansProvider =
     FutureProvider<List<WorkoutPlanSummary>>((ref) async {
-  final cachedApi = ref.watch(cachedApiProvider);
   final repo = ref.watch(workoutRepositoryProvider);
-
-  return cachedApi.fetch<List<WorkoutPlanSummary>>(
-    cacheKey: 'plans',
-    apiCall: repo.getPlans,
-    fromCache: (json) => (json as List<dynamic>)
-        .map((e) => WorkoutPlanSummary.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    toCache: (data) => data.map((e) => e.toJson()).toList(),
-    ttl: const Duration(minutes: 2),
-  );
+  return repo.getPlans();
 });
 
 final activeExecutionProvider =
