@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -104,12 +105,15 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
     _inputs.putIfAbsent(exe.id, () {
       final map = <int, SetInputControllers>{};
       for (final s in exe.sets) {
+        // If the set was already completed, pre-fill with actual values;
+        // otherwise leave empty so target values show as placeholder text.
+        final hasActual = s.completedAt != null;
         map[s.setNumber] = SetInputControllers(
           reps: TextEditingController(
-            text: s.actualReps?.toString() ?? s.targetReps?.toString() ?? '',
+            text: hasActual ? (s.actualReps?.toString() ?? '') : '',
           ),
           weight: TextEditingController(
-            text: s.actualWeight?.toString() ?? s.targetWeight?.toString() ?? '',
+            text: hasActual ? (s.actualWeight?.toString() ?? '') : '',
           ),
         );
       }
@@ -525,41 +529,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FlameWidget(
-                scale: flameState.scale,
-                opacity: flameState.opacity,
-                speedSeconds: flameState.speedSeconds,
-                glow: flameState.glow,
-                size: 28,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${flameState.percent}%',
-                style: Theme.of(context)
-                    .textTheme
-                    .labelLarge
-                    ?.copyWith(color: AppColors.textMuted),
-              ),
-            ],
-          ),
-          if (timerState.isActive)
-            Padding(
-              padding: const EdgeInsets.only(right: 12, left: 8),
-              child: Center(
-                child: Text(
-                  timerState.formattedTime,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: timerState.status == RestTimerStatus.urgent
-                            ? AppColors.danger
-                            : AppColors.textMuted,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                ),
-              ),
-            ),
+          // Elapsed timer pill badge
+          _ElapsedTimerBadge(startedAt: execution.startedAt),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -584,6 +556,8 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                     final exe = exercises[index];
                     return _ExerciseDetailPage(
                       exercise: exe,
+                      exerciseIndex: index,
+                      totalExercises: exercises.length,
                       inputs: _inputs[exe.id] ?? {},
                       completedKeys: wState.completedKeys,
                       flameState: flameState,
@@ -603,6 +577,15 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                             );
                       },
                       onSkipTimer: () => ref.read(restTimerProvider.notifier).skip(),
+                      onStartTimer: () {
+                        final firstSet = exe.sets.isNotEmpty ? exe.sets.first : null;
+                        final rest = firstSet?.restDuration ?? 60;
+                        ref.read(restTimerProvider.notifier).start(
+                              totalSeconds: rest,
+                              exerciseExecId: exe.id,
+                            );
+                      },
+                      onResetTimer: () => ref.read(restTimerProvider.notifier).reset(),
                     );
                   },
                 ),
@@ -614,7 +597,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
           if (timerState.isActive &&
               timerState.exerciseExecId != currentExercise.id)
             Positioned(
-              bottom: 80,
+              bottom: 16,
               right: 16,
               child: FloatingTimerWidget(
                 state: timerState,
@@ -633,20 +616,6 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                 },
               ),
             ),
-
-          // "Termina Allenamento" button
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _TerminaButton(
-              completedSetCount: wState.completedSetCount,
-              totalSets: wState.totalSets,
-              onPressed: () {
-                ref.read(workoutStateProvider.notifier).showCompletion();
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -1006,9 +975,11 @@ class _ExerciseDotsIndicator extends StatelessWidget {
 // =============================================================================
 
 /// A single exercise's detail page inside the swipeable carousel.
-class _ExerciseDetailPage extends StatelessWidget {
+class _ExerciseDetailPage extends StatefulWidget {
   const _ExerciseDetailPage({
     required this.exercise,
+    required this.exerciseIndex,
+    required this.totalExercises,
     required this.inputs,
     required this.completedKeys,
     required this.flameState,
@@ -1017,9 +988,13 @@ class _ExerciseDetailPage extends StatelessWidget {
     required this.onCompleteSet,
     required this.onEditSet,
     required this.onSkipTimer,
+    required this.onStartTimer,
+    required this.onResetTimer,
   });
 
   final ExerciseExecution exercise;
+  final int exerciseIndex;
+  final int totalExercises;
   final Map<int, SetInputControllers> inputs;
   final Set<String> completedKeys;
   final FlameProgressState flameState;
@@ -1028,38 +1003,76 @@ class _ExerciseDetailPage extends StatelessWidget {
   final void Function(int setNumber, int? reps, double? weight) onCompleteSet;
   final void Function(int setNumber) onEditSet;
   final VoidCallback onSkipTimer;
+  final VoidCallback onStartTimer;
+  final VoidCallback onResetTimer;
+
+  @override
+  State<_ExerciseDetailPage> createState() => _ExerciseDetailPageState();
+}
+
+class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
+  final _noteController = TextEditingController();
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
 
   int _findActiveSetNumber() {
-    for (final s in exercise.sets) {
-      final key = '${exercise.id}:${s.setNumber}';
-      if (!completedKeys.contains(key)) return s.setNumber;
+    for (final s in widget.exercise.sets) {
+      final key = '${widget.exercise.id}:${s.setNumber}';
+      if (!widget.completedKeys.contains(key)) return s.setNumber;
     }
     return -1; // all completed
+  }
+
+  String _buildExerciseSubtitle() {
+    final sets = widget.exercise.sets;
+    if (sets.isEmpty) return '';
+    final setCount = sets.length;
+    final firstSet = sets.first;
+    final reps = firstSet.targetReps?.toString() ?? '?';
+    final rest = firstSet.restDuration;
+    final restStr = rest != null && rest > 0
+        ? " \u00B7 rec.${rest >= 60 ? "${rest ~/ 60}'" : "${rest}s"}"
+        : '';
+    return '${widget.exerciseIndex + 1}/${widget.totalExercises} \u00B7 $setCount\u00D7$reps$restStr';
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final activeSetNumber = _findActiveSetNumber();
-    final showTimer = isCurrentPage &&
-        timerState.isActive &&
-        timerState.exerciseExecId == exercise.id;
+    final isTimerForThisExercise = widget.isCurrentPage &&
+        widget.timerState.isActive &&
+        widget.timerState.exerciseExecId == widget.exercise.id;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
-        // Exercise name
+        // --- EXERCISE HEADER ---
         Text(
-          exercise.exerciseName ?? 'Esercizio',
+          widget.exercise.exerciseName ?? 'Esercizio',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
+            color: AppColors.primary,
           ),
           textAlign: TextAlign.center,
         ),
-        if (exercise.notes != null && exercise.notes!.isNotEmpty) ...[
+        const SizedBox(height: 4),
+        Text(
+          _buildExerciseSubtitle(),
+          style: textTheme.bodySmall?.copyWith(
+            color: AppColors.textMuted,
+            fontSize: 13,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (widget.exercise.notes != null && widget.exercise.notes!.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(
-            exercise.notes!,
+            widget.exercise.notes!,
             style: textTheme.bodySmall?.copyWith(
               color: AppColors.textMuted,
               fontStyle: FontStyle.italic,
@@ -1069,24 +1082,55 @@ class _ExerciseDetailPage extends StatelessWidget {
         ],
         const SizedBox(height: 16),
 
-        // Flame + Rest Timer row
-        _FlameAndTimerRow(
-          flameState: flameState,
-          timerState: showTimer ? timerState : null,
-          onSkipTimer: onSkipTimer,
+        // --- FLAME ---
+        Center(
+          child: Column(
+            children: [
+              FlameWidget(
+                scale: widget.flameState.scale,
+                opacity: widget.flameState.opacity,
+                speedSeconds: widget.flameState.speedSeconds,
+                glow: widget.flameState.glow,
+                size: 56,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${widget.flameState.percent}%',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // --- RECUPERO TIMER (always visible) ---
+        _AlwaysVisibleRestTimer(
+          timerState: isTimerForThisExercise ? widget.timerState : null,
+          defaultRestSeconds: widget.exercise.sets.isNotEmpty
+              ? (widget.exercise.sets.first.restDuration ?? 60)
+              : 60,
+          onStart: widget.onStartTimer,
+          onReset: widget.onResetTimer,
         ),
         const SizedBox(height: 20),
 
-        // Current set input (only the active set)
+        // --- CURRENT SET INPUT ---
         if (activeSetNumber > 0) ...[
           _buildActiveSetInput(activeSetNumber),
+          const SizedBox(height: 8),
+          // --- NOTE INPUT ---
+          _NoteInput(controller: _noteController),
           const SizedBox(height: 16),
         ],
 
-        // Completed sets
+        // --- COMPLETED SETS ---
         ..._buildCompletedSets(),
 
-        // All done message
+        // --- ALL DONE ---
         if (activeSetNumber < 0)
           Container(
             padding: const EdgeInsets.all(20),
@@ -1109,40 +1153,53 @@ class _ExerciseDetailPage extends StatelessWidget {
               ],
             ),
           ),
+
+        const SizedBox(height: 24),
+
+        // --- STORICO SECTION ---
+        _StoricoSection(exercise: widget.exercise),
       ],
     );
   }
 
   Widget _buildActiveSetInput(int activeSetNumber) {
-    final inp = inputs[activeSetNumber];
+    final inp = widget.inputs[activeSetNumber];
+    // Find the target values for placeholder
+    final activeSet = widget.exercise.sets.firstWhere(
+      (s) => s.setNumber == activeSetNumber,
+      orElse: () => widget.exercise.sets.first,
+    );
 
     return SetInputCard(
       setNumber: activeSetNumber,
-      totalSets: exercise.sets.length,
+      totalSets: widget.exercise.sets.length,
       repsController: inp?.reps ?? TextEditingController(),
       weightController: inp?.weight ?? TextEditingController(),
+      repsPlaceholder: activeSet.targetReps?.toString(),
+      weightPlaceholder: activeSet.targetWeight?.toString(),
       isCompleted: false,
       isActive: true,
       onComplete: () {
         final reps = int.tryParse(inp?.reps.text ?? '');
         final weight = double.tryParse(inp?.weight.text ?? '');
-        onCompleteSet(activeSetNumber, reps, weight);
+        widget.onCompleteSet(activeSetNumber, reps, weight);
+        _noteController.clear();
       },
     );
   }
 
   List<Widget> _buildCompletedSets() {
     final completed = <Widget>[];
-    for (final s in exercise.sets) {
-      final key = '${exercise.id}:${s.setNumber}';
-      if (completedKeys.contains(key)) {
-        final inp = inputs[s.setNumber];
+    for (final s in widget.exercise.sets) {
+      final key = '${widget.exercise.id}:${s.setNumber}';
+      if (widget.completedKeys.contains(key)) {
+        final inp = widget.inputs[s.setNumber];
         completed.add(
           _CompletedSetRow(
             setNumber: s.setNumber,
             reps: inp?.reps.text ?? '',
             weight: inp?.weight.text ?? '',
-            onLongPress: () => onEditSet(s.setNumber),
+            onLongPress: () => widget.onEditSet(s.setNumber),
           ),
         );
       }
@@ -1168,109 +1225,195 @@ class _ExerciseDetailPage extends StatelessWidget {
   }
 }
 
-/// Flame + inline rest timer shown side by side at top of detail view.
-class _FlameAndTimerRow extends StatelessWidget {
-  const _FlameAndTimerRow({
-    required this.flameState,
-    required this.timerState,
-    required this.onSkipTimer,
-  });
+/// Elapsed workout timer badge (orange pill) — shows time since workout started.
+class _ElapsedTimerBadge extends StatefulWidget {
+  const _ElapsedTimerBadge({required this.startedAt});
 
-  final FlameProgressState flameState;
-  final RestTimerState? timerState;
-  final VoidCallback onSkipTimer;
+  final String startedAt;
+
+  @override
+  State<_ElapsedTimerBadge> createState() => _ElapsedTimerBadgeState();
+}
+
+class _ElapsedTimerBadgeState extends State<_ElapsedTimerBadge> {
+  late final Timer _ticker;
+  Duration _elapsed = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateElapsed();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _updateElapsed());
+  }
+
+  void _updateElapsed() {
+    final started = DateTime.tryParse(widget.startedAt);
+    if (started == null) return;
+    if (!mounted) return;
+    setState(() {
+      _elapsed = DateTime.now().difference(started);
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker.cancel();
+    super.dispose();
+  }
+
+  String _format(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Flame section
-        Column(
-          children: [
-            FlameWidget(
-              scale: flameState.scale,
-              opacity: flameState.opacity,
-              speedSeconds: flameState.speedSeconds,
-              glow: flameState.glow,
-              size: 56,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${flameState.percent}%',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        _format(_elapsed),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'monospace',
+          color: AppColors.primary,
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
-
-        // Rest timer (inline, shown when active)
-        if (timerState != null) ...[
-          const SizedBox(width: 24),
-          _InlineRestTimer(state: timerState!, onSkip: onSkipTimer),
-        ],
-      ],
+      ),
     );
   }
 }
 
-/// Inline rest timer box matching the PWA style (ring + time + buttons).
-class _InlineRestTimer extends StatelessWidget {
-  const _InlineRestTimer({required this.state, required this.onSkip});
+/// Always-visible rest timer with vertical layout.
+/// Shows idle state when timer is not running, with "Avvia" and "Reset" buttons.
+class _AlwaysVisibleRestTimer extends StatelessWidget {
+  const _AlwaysVisibleRestTimer({
+    required this.timerState,
+    required this.defaultRestSeconds,
+    required this.onStart,
+    required this.onReset,
+  });
 
-  final RestTimerState state;
-  final VoidCallback onSkip;
+  final RestTimerState? timerState;
+  final int defaultRestSeconds;
+  final VoidCallback onStart;
+  final VoidCallback onReset;
+
+  bool get _isActive => timerState != null && timerState!.isActive;
+  bool get _isOvertime => timerState?.status == RestTimerStatus.overtime;
 
   Color get _accentColor {
-    return switch (state.status) {
+    if (timerState == null || !_isActive) return AppColors.textMuted;
+    return switch (timerState!.status) {
       RestTimerStatus.urgent => AppColors.danger,
       RestTimerStatus.overtime => AppColors.success,
       _ => AppColors.primary,
     };
   }
 
+  String get _displayTime {
+    if (_isActive) return timerState!.formattedTime;
+    // Show default rest time when idle
+    final m = defaultRestSeconds ~/ 60;
+    final s = defaultRestSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = _accentColor;
 
+    // Box decorations based on state
+    BoxDecoration boxDecoration;
+    if (_isOvertime) {
+      boxDecoration = BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.success.withValues(alpha: 0.12),
+            AppColors.success.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.success.withValues(alpha: 0.25),
+            blurRadius: 12,
+            spreadRadius: 0,
+          ),
+        ],
+      );
+    } else if (_isActive) {
+      boxDecoration = BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            blurRadius: 12,
+            spreadRadius: 0,
+          ),
+        ],
+      );
+    } else {
+      boxDecoration = BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xD916161A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: boxDecoration,
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Mini ring
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: CustomPaint(
-              painter: _InlineTimerRingPainter(
-                progress: state.progressFraction,
-                color: color,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.timer_outlined,
-                  size: 16,
-                  color: color,
-                ),
-              ),
+          // "RECUPERO" label
+          Text(
+            'RECUPERO',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 6),
+          // Ring + time
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: CustomPaint(
+                  painter: _InlineTimerRingPainter(
+                    progress: _isActive ? timerState!.progressFraction : 0.0,
+                    color: color,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.timer_outlined,
+                      size: 14,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
               Text(
-                state.formattedTime,
+                _displayTime,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -1279,33 +1422,178 @@ class _InlineRestTimer extends StatelessWidget {
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                'RECUPERO',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textMuted,
-                  letterSpacing: 1,
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Buttons row: "Avvia" (green) and "Reset" (red)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: _isActive ? null : onStart,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _isActive
+                        ? AppColors.success.withValues(alpha: 0.1)
+                        : AppColors.success.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _isActive
+                          ? AppColors.success.withValues(alpha: 0.2)
+                          : AppColors.success.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    'Avvia',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _isActive
+                          ? AppColors.success.withValues(alpha: 0.4)
+                          : AppColors.success,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: onReset,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                  ),
+                  child: const Text(
+                    'Reset',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.danger,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: onSkip,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.border),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Salta',
+        ],
+      ),
+    );
+  }
+}
+
+/// Note input field below the set input.
+class _NoteInput extends StatelessWidget {
+  const _NoteInput({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(
+        fontSize: 14,
+        color: AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        hintText: 'Aggiungi nota...',
+        hintStyle: const TextStyle(
+          fontSize: 14,
+          color: AppColors.textMuted,
+        ),
+        filled: false,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        border: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: AppColors.primary.withValues(alpha: 0.2),
+          ),
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: AppColors.primary.withValues(alpha: 0.2),
+          ),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: AppColors.primary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Storico section — shows historical performance for this exercise.
+/// Currently a placeholder until the API returns exercise history data.
+class _StoricoSection extends StatelessWidget {
+  const _StoricoSection({required this.exercise});
+
+  final ExerciseExecution exercise;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: STORICO + PR badges
+          Row(
+            children: [
+              Text(
+                'STORICO',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const Spacer(),
+              // PR badges (placeholder — will be populated with real data)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.2),
+                      AppColors.primaryDark.withValues(alpha: 0.2),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'PR: --',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Placeholder content
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Nessuno storico disponibile',
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ),

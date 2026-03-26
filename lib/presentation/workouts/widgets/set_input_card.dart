@@ -18,6 +18,8 @@ class SetInputCard extends StatelessWidget {
     required this.isActive,
     this.onComplete,
     this.onLongPress,
+    this.repsPlaceholder,
+    this.weightPlaceholder,
     super.key,
   });
 
@@ -29,6 +31,8 @@ class SetInputCard extends StatelessWidget {
   final bool isActive;
   final VoidCallback? onComplete;
   final VoidCallback? onLongPress;
+  final String? repsPlaceholder;
+  final String? weightPlaceholder;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +81,7 @@ class SetInputCard extends StatelessWidget {
                   label: 'REPS',
                   controller: repsController,
                   decimal: false,
+                  placeholder: repsPlaceholder,
                 ),
               ),
               const Padding(
@@ -96,6 +101,7 @@ class SetInputCard extends StatelessWidget {
                   label: 'KG',
                   controller: weightController,
                   decimal: true,
+                  placeholder: weightPlaceholder,
                 ),
               ),
               const SizedBox(width: 12),
@@ -133,11 +139,13 @@ class _SetInputField extends StatelessWidget {
     required this.label,
     required this.controller,
     required this.decimal,
+    this.placeholder,
   });
 
   final String label;
   final TextEditingController controller;
   final bool decimal;
+  final String? placeholder;
 
   @override
   Widget build(BuildContext context) {
@@ -177,10 +185,17 @@ class _SetInputField extends StatelessWidget {
                 color: AppColors.textPrimary,
                 height: 1.2,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 border: InputBorder.none,
+                hintText: placeholder,
+                hintStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted,
+                  height: 1.2,
+                ),
               ),
             ),
           ),
