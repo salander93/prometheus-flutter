@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 
-/// A card-based input widget for a single workout set.
+/// PWA-style set input card.
 ///
-/// Three visual states:
-/// - **Completed** — teal check, muted values, long-press to edit.
-/// - **Active** — orange border, editable inputs, swipe or button to complete.
-/// - **Pending** — dimmed, non-interactive.
+/// Shows the current set to complete with reps/weight inputs and a confirm
+/// button. Matches the old PWA layout:
+/// - Header: "Set N" + "di M" (muted)
+/// - Row: Reps input | "x" | Kg input | orange confirm button
+/// - Optional note input below
 class SetInputCard extends StatelessWidget {
   const SetInputCard({
     required this.setNumber,
+    required this.totalSets,
     required this.repsController,
     required this.weightController,
     required this.isCompleted,
@@ -20,6 +22,7 @@ class SetInputCard extends StatelessWidget {
   });
 
   final int setNumber;
+  final int totalSets;
   final TextEditingController repsController;
   final TextEditingController weightController;
   final bool isCompleted;
@@ -29,293 +32,104 @@ class SetInputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isCompleted) {
-      return _CompletedCard(
-        setNumber: setNumber,
-        repsController: repsController,
-        weightController: weightController,
-        onLongPress: onLongPress,
-      );
-    }
+    if (!isActive) return const SizedBox.shrink();
 
-    if (isActive) {
-      return _ActiveCard(
-        setNumber: setNumber,
-        repsController: repsController,
-        weightController: weightController,
-        onComplete: onComplete,
-      );
-    }
-
-    // Pending state
-    return Opacity(
-      opacity: 0.5,
-      child: _PendingCard(
-        setNumber: setNumber,
-        repsController: repsController,
-        weightController: weightController,
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Completed state
-// ---------------------------------------------------------------------------
-
-class _CompletedCard extends StatelessWidget {
-  const _CompletedCard({
-    required this.setNumber,
-    required this.repsController,
-    required this.weightController,
-    required this.onLongPress,
-  });
-
-  final int setNumber;
-  final TextEditingController repsController;
-  final TextEditingController weightController;
-  final VoidCallback? onLongPress;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPress: onLongPress,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.success.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.success.withValues(alpha: 0.20),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Check circle
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check,
-                color: AppColors.success,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Serie $setNumber',
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 13,
-              ),
-            ),
-            const Spacer(),
-            _ValueDisplay(label: 'RIP', value: repsController.text),
-            const SizedBox(width: 16),
-            _ValueDisplay(label: 'KG', value: weightController.text),
-            const SizedBox(width: 16),
-            const Text(
-              'Fatto',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.success,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Active state
-// ---------------------------------------------------------------------------
-
-class _ActiveCard extends StatelessWidget {
-  const _ActiveCard({
-    required this.setNumber,
-    required this.repsController,
-    required this.weightController,
-    required this.onComplete,
-  });
-
-  final int setNumber;
-  final TextEditingController repsController;
-  final TextEditingController weightController;
-  final VoidCallback? onComplete;
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primary, width: 2),
-      ),
-      child: Row(
-        children: [
-          // Set number badge
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$setNumber',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _CompactInput(
-              label: 'RIP',
-              controller: repsController,
-              decimal: false,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _CompactInput(
-              label: 'KG',
-              controller: weightController,
-              decimal: true,
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 110,
-            child: FilledButton(
-              onPressed: onComplete,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              ),
-              child: const Text('Completa ✓', style: TextStyle(fontSize: 12)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Pending state
-// ---------------------------------------------------------------------------
-
-class _PendingCard extends StatelessWidget {
-  const _PendingCard({
-    required this.setNumber,
-    required this.repsController,
-    required this.weightController,
-  });
-
-  final int setNumber;
-  final TextEditingController repsController;
-  final TextEditingController weightController;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(10),
+        color: const Color(0xD916161A), // rgba(22,22,26,0.85)
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gray circle
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.textMuted.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$setNumber',
+          // Header: "Set N" + "di M"
+          Row(
+            children: [
+              Text(
+                'Set $setNumber',
                 style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
-            ),
+              const SizedBox(width: 6),
+              Text(
+                'di $totalSets',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Text(
-            'Serie $setNumber',
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 13,
-            ),
+          const SizedBox(height: 14),
+
+          // Input row: Reps | x | Kg | Confirm button
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Reps input
+              Expanded(
+                child: _SetInputField(
+                  label: 'REPS',
+                  controller: repsController,
+                  decimal: false,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 14),
+                child: Text(
+                  '\u00D7',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              // Weight input
+              Expanded(
+                child: _SetInputField(
+                  label: 'KG',
+                  controller: weightController,
+                  decimal: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Orange confirm button (48x48, radius 10)
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Material(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: onComplete,
+                    child: const Center(
+                      child: Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const Spacer(),
-          _ValueDisplay(label: 'RIP', value: repsController.text),
-          const SizedBox(width: 16),
-          _ValueDisplay(label: 'KG', value: weightController.text),
         ],
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Helper widgets
-// ---------------------------------------------------------------------------
-
-class _ValueDisplay extends StatelessWidget {
-  const _ValueDisplay({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value.isEmpty ? '—' : value,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CompactInput extends StatelessWidget {
-  const _CompactInput({
+/// Individual input field for reps or weight, PWA-style.
+class _SetInputField extends StatelessWidget {
+  const _SetInputField({
     required this.label,
     required this.controller,
     required this.decimal,
@@ -327,43 +141,50 @@ class _CompactInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 60,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundBase,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                color: AppColors.textMuted,
-              ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Uppercase label (0.7rem equivalent)
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 1,
             ),
-            TextField(
+          ),
+          const SizedBox(height: 6),
+          // Input box
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.backgroundInput,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: TextField(
               controller: controller,
               keyboardType: decimal
                   ? const TextInputType.numberWithOptions(decimal: true)
                   : TextInputType.number,
+              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
+                height: 1.2,
               ),
               decoration: const InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 border: InputBorder.none,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
