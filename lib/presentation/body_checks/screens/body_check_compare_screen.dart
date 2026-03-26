@@ -108,19 +108,37 @@ class _BodyCheckCompareScreenState
     // Sort chronologically (oldest first).
     result.sort((a, b) => a.date.compareTo(b.date));
 
+    // Try to preserve selected dates when switching position
+    final prevBeforeDate = _before?.date;
+    final prevAfterDate = _after?.date;
+
     setState(() {
       _photos = result;
       _before = null;
       _after = null;
-      _sliderPosition = 0.5;
-      _overlayOpacity = 0.5;
 
-      // Auto-select last two.
-      if (result.length >= 2) {
-        _before = result[result.length - 2];
-        _after = result[result.length - 1];
-      } else if (result.length == 1) {
-        _before = result.first;
+      // Try to match previously selected dates in new position
+      if (prevBeforeDate != null) {
+        _before = result.cast<_TimelinePhoto?>().firstWhere(
+          (p) => p!.date == prevBeforeDate,
+          orElse: () => null,
+        );
+      }
+      if (prevAfterDate != null) {
+        _after = result.cast<_TimelinePhoto?>().firstWhere(
+          (p) => p!.date == prevAfterDate,
+          orElse: () => null,
+        );
+      }
+
+      // Fallback: auto-select last two if no match found
+      if (_before == null && _after == null) {
+        if (result.length >= 2) {
+          _before = result[result.length - 2];
+          _after = result[result.length - 1];
+        } else if (result.length == 1) {
+          _before = result.first;
+        }
       }
     });
   }
@@ -550,14 +568,18 @@ class _SideBySidePanel extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (photo != null)
-            CachedNetworkImage(
-              imageUrl: photo!.photoUrl,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => const ColoredBox(
-                color: AppColors.backgroundCard,
+            InteractiveViewer(
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: CachedNetworkImage(
+                imageUrl: photo!.photoUrl,
+                fit: BoxFit.contain,
+                placeholder: (_, __) => const ColoredBox(
+                  color: AppColors.backgroundCard,
+                ),
+                errorWidget: (_, __, ___) =>
+                    const _NoPhotoPlaceholder(),
               ),
-              errorWidget: (_, __, ___) =>
-                  const _NoPhotoPlaceholder(),
             )
           else
             const _NoPhotoPlaceholder(),
@@ -647,7 +669,7 @@ class _SliderMode extends StatelessWidget {
               if (after != null)
                 CachedNetworkImage(
                   imageUrl: after!.photoUrl,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   placeholder: (_, __) =>
                       const ColoredBox(
                     color:
@@ -667,7 +689,7 @@ class _SliderMode extends StatelessWidget {
                   clipper: _LeftClipper(clipX),
                   child: CachedNetworkImage(
                     imageUrl: before!.photoUrl,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     width: width,
                     placeholder: (_, __) =>
                         const ColoredBox(
@@ -782,37 +804,41 @@ class _OverlayMode extends StatelessWidget {
         Expanded(
           child: ColoredBox(
             color: AppColors.backgroundDeepest,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Before (base)
-                if (before != null)
-                  CachedNetworkImage(
-                    imageUrl: before!.photoUrl,
-                    fit: BoxFit.contain,
-                    placeholder: (_, __) =>
-                        const SizedBox.shrink(),
-                    errorWidget: (_, __, ___) =>
-                        const _NoPhotoPlaceholder(),
-                  )
-                else
-                  const _NoPhotoPlaceholder(),
-
-                // After (overlay with opacity)
-                if (after != null)
-                  Opacity(
-                    opacity: opacity,
-                    child: CachedNetworkImage(
-                      imageUrl: after!.photoUrl,
+            child: InteractiveViewer(
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Before (base)
+                  if (before != null)
+                    CachedNetworkImage(
+                      imageUrl: before!.photoUrl,
                       fit: BoxFit.contain,
                       placeholder: (_, __) =>
                           const SizedBox.shrink(),
+                      errorWidget: (_, __, ___) =>
+                          const _NoPhotoPlaceholder(),
+                    )
+                  else
+                    const _NoPhotoPlaceholder(),
+
+                  // After (overlay with opacity)
+                  if (after != null)
+                    Opacity(
+                      opacity: opacity,
+                      child: CachedNetworkImage(
+                        imageUrl: after!.photoUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (_, __) =>
+                            const SizedBox.shrink(),
                       errorWidget: (_, __, ___) =>
                           const SizedBox.shrink(),
                     ),
                   ),
               ],
             ),
+          ),
           ),
         ),
 
