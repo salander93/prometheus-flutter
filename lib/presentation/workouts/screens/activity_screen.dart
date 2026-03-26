@@ -265,8 +265,7 @@ class _StartWorkoutButton extends StatelessWidget {
               ],
             ),
           ),
-        ),
-    );
+        );
   }
 }
 
