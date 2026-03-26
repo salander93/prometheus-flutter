@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 import 'package:palestra/data/models/workout_models.dart';
 import 'package:palestra/presentation/auth/providers/auth_providers.dart';
 import 'package:palestra/presentation/shared/providers/workout_providers.dart';
 import 'package:palestra/presentation/shared/widgets/shimmer_loading.dart';
+import 'package:palestra/presentation/workouts/widgets/start_workout_sheet.dart';
 
 class ActivityScreen extends ConsumerWidget {
   const ActivityScreen({super.key});
@@ -14,6 +16,8 @@ class ActivityScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(currentUserProvider);
     final logsAsync = ref.watch(activityLogsProvider);
+    final activeExecution = ref.watch(activeExecutionProvider).valueOrNull;
+    final plans = ref.watch(workoutPlansProvider).valueOrNull ?? [];
 
     final isTrainer = userAsync.valueOrNull?.role == 'TRAINER';
 
@@ -21,7 +25,12 @@ class ActivityScreen extends ConsumerWidget {
       data: (logs) => _LogsList(
         logs: logs,
         isTrainer: isTrainer,
-        onRefresh: () async => ref.invalidate(activityLogsProvider),
+        activeExecution: isTrainer ? null : activeExecution,
+        activePlan: isTrainer || plans.isEmpty ? null : plans.first,
+        onRefresh: () async {
+          ref.invalidate(activityLogsProvider);
+          ref.invalidate(activeExecutionProvider);
+        },
       ),
       loading: () => const ShimmerLoading(),
       error: (error, _) => _ErrorView(
@@ -40,34 +49,222 @@ class _LogsList extends StatelessWidget {
     required this.logs,
     required this.isTrainer,
     required this.onRefresh,
+    this.activeExecution,
+    this.activePlan,
   });
 
   final List<ActivityLogSummary> logs;
   final bool isTrainer;
   final Future<void> Function() onRefresh;
+  final WorkoutExecution? activeExecution;
+  final WorkoutPlanSummary? activePlan;
 
   @override
   Widget build(BuildContext context) {
-    if (logs.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: onRefresh,
-        child: ListView(
-          children: [_EmptyState(isTrainer: isTrainer)],
-        ),
-      );
-    }
-
     return RefreshIndicator(
       onRefresh: onRefresh,
-      child: ListView.separated(
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        itemCount: logs.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _ActivityCard(
-          log: logs[index],
-          isTrainer: isTrainer,
+        children: [
+          // Active workout banner
+          if (activeExecution != null) ...[
+            _ActiveWorkoutBanner(
+              execution: activeExecution!,
+              onResume: () => context.go('/workout/${activeExecution!.id}'),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Start workout button (if no active workout and has a plan)
+          if (activeExecution == null && activePlan != null) ...[
+            _StartWorkoutButton(
+              plan: activePlan!,
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => StartWorkoutSheet(planId: activePlan!.id),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Storico header
+          if (logs.isNotEmpty) ...[
+            Text(
+              'Storico',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Log cards
+          if (logs.isEmpty)
+            _EmptyState(isTrainer: isTrainer)
+          else
+            ...logs.map((log) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _ActivityCard(log: log, isTrainer: isTrainer),
+            )),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Active workout banner (simple orange bar like old PWA activity page)
+// ---------------------------------------------------------------------------
+
+class _ActiveWorkoutBanner extends StatelessWidget {
+  const _ActiveWorkoutBanner({
+    required this.execution,
+    required this.onResume,
+  });
+
+  final WorkoutExecution execution;
+  final VoidCallback onResume;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onResume,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    execution.sessionName ?? 'Allenamento in corso',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                  if (execution.planName != null)
+                    Text(
+                      execution.planName!,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 13,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Riprendi',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Start workout button
+// ---------------------------------------------------------------------------
+
+class _StartWorkoutButton extends StatelessWidget {
+  const _StartWorkoutButton({
+    required this.plan,
+    required this.onTap,
+  });
+
+  final WorkoutPlanSummary plan;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Inizia Allenamento',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        plan.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Settimana ${plan.currentWeek} di ${plan.durationWeeks}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
