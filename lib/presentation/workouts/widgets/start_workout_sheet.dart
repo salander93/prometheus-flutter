@@ -40,12 +40,23 @@ class _StartWorkoutSheetState extends ConsumerState<StartWorkoutSheet> {
     setState(() => _isStarting = true);
     try {
       final repo = ref.read(workoutRepositoryProvider);
+
+      // Check if there's already an active execution
+      final active = await repo.getActiveExecution();
+      if (active != null && mounted) {
+        Navigator.of(context).pop();
+        context.go('/workout/${active.id}');
+        return;
+      }
+
       final execution = await repo.startExecution(
         planId: widget.planId,
         sessionId: _selectedSessionId!,
         weekNumber: _weekNumber,
       );
       if (mounted) {
+        // Invalidate providers so dashboard updates
+        ref.invalidate(activeExecutionProvider);
         Navigator.of(context).pop();
         context.go('/workout/${execution.id}');
       }
@@ -53,7 +64,10 @@ class _StartWorkoutSheetState extends ConsumerState<StartWorkoutSheet> {
       if (mounted) {
         setState(() => _isStarting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e')),
+          SnackBar(
+            content: Text('Errore: $e'),
+            duration: const Duration(seconds: 5),
+          ),
         );
       }
     }
