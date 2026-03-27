@@ -18,7 +18,6 @@ import 'package:palestra/presentation/workouts/services/haptic_service.dart';
 import 'package:palestra/presentation/workouts/widgets/exercise_carousel.dart';
 import 'package:palestra/presentation/workouts/widgets/flame_widget.dart';
 import 'package:palestra/presentation/workouts/widgets/floating_timer_widget.dart';
-import 'package:palestra/presentation/workouts/widgets/set_input_card.dart';
 
 /// Provider that fetches and caches the execution detail.
 final executionDetailProvider =
@@ -965,6 +964,8 @@ class _ExerciseDotsIndicator extends StatelessWidget {
 // =============================================================================
 
 /// A single exercise's detail page inside the swipeable carousel.
+/// Layout matches the PWA exactly: Header -> Flame+Timer row -> Set input
+/// (with note inside card) -> Completed sets list -> Storico section.
 class _ExerciseDetailPage extends StatefulWidget {
   const _ExerciseDetailPage({
     required this.exercise,
@@ -1041,7 +1042,7 @@ class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
-        // --- EXERCISE HEADER ---
+        // --- EXERCISE HEADER (name in orange, subtitle below) ---
         Text(
           widget.exercise.exerciseName ?? 'Esercizio',
           style: textTheme.titleLarge?.copyWith(
@@ -1059,7 +1060,8 @@ class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
           ),
           textAlign: TextAlign.center,
         ),
-        if (widget.exercise.notes != null && widget.exercise.notes!.isNotEmpty) ...[
+        if (widget.exercise.notes != null &&
+            widget.exercise.notes!.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(
             widget.exercise.notes!,
@@ -1070,54 +1072,64 @@ class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
             textAlign: TextAlign.center,
           ),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
-        // --- FLAME ---
-        Center(
-          child: Column(
+        // --- FLAME + TIMER ROW (horizontal, PWA .flame-progress-container) ---
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              FlameWidget(
-                scale: widget.flameState.scale,
-                opacity: widget.flameState.opacity,
-                speedSeconds: widget.flameState.speedSeconds,
-                glow: widget.flameState.glow,
-                size: 56,
+              // Flame section (left)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FlameWidget(
+                    scale: widget.flameState.scale,
+                    opacity: widget.flameState.opacity,
+                    speedSeconds: widget.flameState.speedSeconds,
+                    glow: widget.flameState.glow,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${widget.flameState.percent}%',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${widget.flameState.percent}%',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textMuted,
-                ),
+              const SizedBox(width: 16),
+              // Rest timer section (right)
+              _AlwaysVisibleRestTimer(
+                timerState:
+                    isTimerForThisExercise ? widget.timerState : null,
+                defaultRestSeconds: widget.exercise.sets.isNotEmpty
+                    ? (widget.exercise.sets.first.restDuration ?? 60)
+                    : 60,
+                onStart: widget.onStartTimer,
+                onReset: widget.onResetTimer,
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
 
-        // --- RECUPERO TIMER (always visible) ---
-        _AlwaysVisibleRestTimer(
-          timerState: isTimerForThisExercise ? widget.timerState : null,
-          defaultRestSeconds: widget.exercise.sets.isNotEmpty
-              ? (widget.exercise.sets.first.restDuration ?? 60)
-              : 60,
-          onStart: widget.onStartTimer,
-          onReset: widget.onResetTimer,
-        ),
-        const SizedBox(height: 20),
-
-        // --- CURRENT SET INPUT ---
+        // --- CURRENT SET INPUT (with note inside card) ---
         if (activeSetNumber > 0) ...[
           _buildActiveSetInput(activeSetNumber),
-          const SizedBox(height: 8),
-          // --- NOTE INPUT ---
-          _NoteInput(controller: _noteController),
           const SizedBox(height: 16),
         ],
 
-        // --- COMPLETED SETS ---
+        // --- COMPLETED SETS (PWA-style list with reps x kg) ---
         ..._buildCompletedSets(),
 
         // --- ALL DONE ---
@@ -1127,11 +1139,13 @@ class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
             decoration: BoxDecoration(
               color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.success.withValues(alpha: 0.3)),
             ),
             child: Column(
               children: [
-                const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 40),
+                const Icon(Icons.check_circle_rounded,
+                    color: AppColors.success, size: 40),
                 const SizedBox(height: 8),
                 Text(
                   'Esercizio completato!',
@@ -1154,27 +1168,137 @@ class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
 
   Widget _buildActiveSetInput(int activeSetNumber) {
     final inp = widget.inputs[activeSetNumber];
-    // Find the target values for placeholder
     final activeSet = widget.exercise.sets.firstWhere(
       (s) => s.setNumber == activeSetNumber,
       orElse: () => widget.exercise.sets.first,
     );
 
-    return SetInputCard(
-      setNumber: activeSetNumber,
-      totalSets: widget.exercise.sets.length,
-      repsController: inp?.reps ?? TextEditingController(),
-      weightController: inp?.weight ?? TextEditingController(),
-      repsPlaceholder: activeSet.targetReps?.toString(),
-      weightPlaceholder: activeSet.targetWeight?.toString(),
-      isCompleted: false,
-      isActive: true,
-      onComplete: () {
-        final reps = int.tryParse(inp?.reps.text ?? '');
-        final weight = double.tryParse(inp?.weight.text ?? '');
-        widget.onCompleteSet(activeSetNumber, reps, weight);
-        _noteController.clear();
-      },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xD916161A), // rgba(22,22,26,0.85)
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: "Set N" + "di M"
+          Row(
+            children: [
+              Text(
+                'Set $activeSetNumber',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'di ${widget.exercise.sets.length}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Input row: Reps | x | Kg | Confirm button
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Reps input
+              Expanded(
+                child: _PwaSetInputField(
+                  label: 'REPS',
+                  controller: inp?.reps ?? TextEditingController(),
+                  decimal: false,
+                  placeholder: activeSet.targetReps?.toString(),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 14),
+                child: Text(
+                  '\u00D7',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              // Weight input
+              Expanded(
+                child: _PwaSetInputField(
+                  label: 'KG',
+                  controller: inp?.weight ?? TextEditingController(),
+                  decimal: true,
+                  placeholder: activeSet.targetWeight?.toString(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Orange confirm button (48x48, radius 10)
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Material(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      final reps = int.tryParse(inp?.reps.text ?? '');
+                      final weight =
+                          double.tryParse(inp?.weight.text ?? '');
+                      widget.onCompleteSet(
+                          activeSetNumber, reps, weight);
+                      _noteController.clear();
+                    },
+                    child: const Center(
+                      child: Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Note input (inside card, with border-top like PWA)
+          Container(
+            margin: const EdgeInsets.only(top: 14),
+            padding: const EdgeInsets.only(top: 14),
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.border),
+              ),
+            ),
+            child: TextField(
+              controller: _noteController,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+                border: InputBorder.none,
+                hintText: 'Aggiungi nota...',
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1194,24 +1318,8 @@ class _ExerciseDetailPageState extends State<_ExerciseDetailPage> {
         );
       }
     }
-    if (completed.isNotEmpty) {
-      return [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            'SERIE COMPLETATE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
-        ...completed,
-      ];
-    }
-    return [];
+    if (completed.isEmpty) return [];
+    return completed;
   }
 }
 
@@ -1280,8 +1388,10 @@ class _ElapsedTimerBadgeState extends State<_ElapsedTimerBadge> {
   }
 }
 
-/// Always-visible rest timer with vertical layout.
-/// Shows idle state when timer is not running, with "Avvia" and "Reset" buttons.
+/// Always-visible rest timer — matches PWA `.rest-timer-inline` exactly.
+/// Vertical column: "RECUPERO" label, ring + monospace time, Avvia/Reset pills.
+/// Background: PWA gradient linear-gradient(135deg, #1a1a2e, #16213e).
+/// Running: orange glow. Overtime: green gradient + green glow.
 class _AlwaysVisibleRestTimer extends StatelessWidget {
   const _AlwaysVisibleRestTimer({
     required this.timerState,
@@ -1297,9 +1407,10 @@ class _AlwaysVisibleRestTimer extends StatelessWidget {
 
   bool get _isActive => timerState != null && timerState!.isActive;
   bool get _isOvertime => timerState?.status == RestTimerStatus.overtime;
+  bool get _isUrgent => timerState?.status == RestTimerStatus.urgent;
 
   Color get _accentColor {
-    if (timerState == null || !_isActive) return AppColors.textMuted;
+    if (timerState == null || !_isActive) return Colors.white;
     return switch (timerState!.status) {
       RestTimerStatus.urgent => AppColors.danger,
       RestTimerStatus.overtime => AppColors.success,
@@ -1309,77 +1420,82 @@ class _AlwaysVisibleRestTimer extends StatelessWidget {
 
   String get _displayTime {
     if (_isActive) return timerState!.formattedTime;
-    // Show default rest time when idle
     final m = defaultRestSeconds ~/ 60;
     final s = defaultRestSeconds % 60;
-    return '$m:${s.toString().padLeft(2, '0')}';
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
     final color = _accentColor;
 
-    // Box decorations based on state
+    // PWA gradient backgrounds and glow per state
     BoxDecoration boxDecoration;
     if (_isOvertime) {
+      // PWA: linear-gradient(135deg, #1a2e1a 0%, #16302e 100%) + green glow
       boxDecoration = BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.success.withValues(alpha: 0.12),
-            AppColors.success.withValues(alpha: 0.06),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A2E1A), Color(0xFF16302E)],
         ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.success.withValues(alpha: 0.25),
-            blurRadius: 12,
+            color: AppColors.success.withValues(alpha: 0.3),
+            blurRadius: 15,
             spreadRadius: 0,
           ),
         ],
       );
     } else if (_isActive) {
+      // PWA: same base gradient + orange glow when running
       boxDecoration = BoxDecoration(
-        color: AppColors.backgroundCard,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+        ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.2),
-            blurRadius: 12,
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 15,
             spreadRadius: 0,
           ),
         ],
       );
     } else {
-      boxDecoration = BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      // PWA idle: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)
+      boxDecoration = const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
       );
     }
 
     return Container(
+      constraints: const BoxConstraints(minWidth: 100),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: boxDecoration,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // "RECUPERO" label
-          Text(
+          // "RECUPERO" label (PWA: 0.55rem, uppercase, letter-spacing 1px)
+          const Text(
             'RECUPERO',
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
-          const SizedBox(height: 6),
-          // Ring + time
+          const SizedBox(height: 4),
+          // Ring (32px) + monospace time (1.4rem ~22px)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -1389,33 +1505,31 @@ class _AlwaysVisibleRestTimer extends StatelessWidget {
                 height: 32,
                 child: CustomPaint(
                   painter: _InlineTimerRingPainter(
-                    progress: _isActive ? timerState!.progressFraction : 0.0,
-                    color: color,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.timer_outlined,
-                      size: 14,
-                      color: color,
-                    ),
+                    progress:
+                        _isActive ? timerState!.progressFraction : 0.0,
+                    color: _isActive ? color : AppColors.primary,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 6),
               Text(
                 _displayTime,
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
                   fontFamily: 'monospace',
-                  color: color,
+                  color: _isUrgent
+                      ? AppColors.danger
+                      : _isOvertime
+                          ? AppColors.success
+                          : Colors.white,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // Buttons row: "Avvia" (green) and "Reset" (red)
+          const SizedBox(height: 6),
+          // PWA action pills: "Avvia" (green bg) + "Reset" (red bg)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -1423,46 +1537,44 @@ class _AlwaysVisibleRestTimer extends StatelessWidget {
               GestureDetector(
                 onTap: _isActive ? null : onStart,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
+                    // PWA: rgba(46, 204, 113, 0.4)
                     color: _isActive
-                        ? AppColors.success.withValues(alpha: 0.1)
-                        : AppColors.success.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _isActive
-                          ? AppColors.success.withValues(alpha: 0.2)
-                          : AppColors.success.withValues(alpha: 0.4),
-                    ),
+                        ? const Color(0x1A2ECC71)
+                        : const Color(0x662ECC71),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     'Avvia',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: _isActive
-                          ? AppColors.success.withValues(alpha: 0.4)
-                          : AppColors.success,
+                          ? Colors.white.withValues(alpha: 0.4)
+                          : Colors.white,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 4),
               GestureDetector(
                 onTap: onReset,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.danger.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                    // PWA: rgba(231, 76, 60, 0.3)
+                    color: const Color(0x4DE74C3C),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Text(
                     'Reset',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.danger,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -1475,43 +1587,75 @@ class _AlwaysVisibleRestTimer extends StatelessWidget {
   }
 }
 
-/// Note input field below the set input.
-class _NoteInput extends StatelessWidget {
-  const _NoteInput({required this.controller});
+/// Individual input field for reps or weight inside the set card.
+/// Matches PWA: uppercase label, centered input, background #1a1a1f, radius 10px.
+class _PwaSetInputField extends StatelessWidget {
+  const _PwaSetInputField({
+    required this.label,
+    required this.controller,
+    required this.decimal,
+    this.placeholder,
+  });
 
+  final String label;
   final TextEditingController controller;
+  final bool decimal;
+  final String? placeholder;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(
-        fontSize: 14,
-        color: AppColors.textPrimary,
-      ),
-      decoration: InputDecoration(
-        hintText: 'Aggiungi nota...',
-        hintStyle: const TextStyle(
-          fontSize: 14,
-          color: AppColors.textMuted,
-        ),
-        filled: false,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        border: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: AppColors.primary.withValues(alpha: 0.2),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Uppercase label (PWA: 0.7rem, uppercase, letter-spacing 0.5px)
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 1,
+            ),
           ),
-        ),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: AppColors.primary.withValues(alpha: 0.2),
+          const SizedBox(height: 6),
+          // Input box (PWA: background #1a1a1f, border radius 10px)
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.backgroundInput,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: TextField(
+              controller: controller,
+              keyboardType: decimal
+                  ? const TextInputType.numberWithOptions(decimal: true)
+                  : TextInputType.number,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                height: 1.2,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                border: InputBorder.none,
+                hintText: placeholder,
+                hintStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted,
+                  height: 1.2,
+                ),
+              ),
+            ),
           ),
-        ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: AppColors.primary,
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -1608,23 +1752,23 @@ class _PrBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // PWA: linear-gradient(135deg, #f7c331, #ff6b35), white text, 12px radius
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.2),
-            AppColors.primaryDark.withValues(alpha: 0.2),
-          ],
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF7C331), Color(0xFFFF6B35)],
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
     );
@@ -1887,18 +2031,22 @@ class _InlineTimerRingPainter extends CustomPainter {
       old.progress != progress || old.color != color;
 }
 
-/// Compact completed set row shown below the active input.
+/// Completed set row — matches PWA `.completed-set-row` style.
+/// Shows green badge + set number, reps in orange bold, "reps x", weight in
+/// orange bold, "kg". Notes shown italic muted below if present.
 class _CompletedSetRow extends StatelessWidget {
   const _CompletedSetRow({
     required this.setNumber,
     required this.reps,
     required this.weight,
+    this.notes,
     required this.onLongPress,
   });
 
   final int setNumber;
   final String reps;
   final String weight;
+  final String? notes;
   final VoidCallback onLongPress;
 
   @override
@@ -1906,49 +2054,91 @@ class _CompletedSetRow extends StatelessWidget {
     return GestureDetector(
       onLongPress: onLongPress,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.success.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.success.withValues(alpha: 0.15),
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.border),
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.check_circle, color: AppColors.success, size: 18),
-            const SizedBox(width: 10),
-            Text(
-              'Serie $setNumber',
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 13,
+            Row(
+              children: [
+                // Green badge (PWA: 24x24, success bg, white text)
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$setNumber',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // PWA: reps in orange bold + " reps" + optional " x weight kg"
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: reps.isEmpty ? '—' : reps,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: ' reps',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (weight.isNotEmpty) ...[
+                        const TextSpan(
+                          text: ' x ',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '${weight}kg',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // Notes if present (PWA: italic muted)
+            if (notes != null && notes!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 34, top: 2),
+                child: Text(
+                  notes!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
-            ),
-            const Spacer(),
-            Text(
-              '${reps.isEmpty ? "—" : reps} rip',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Text(
-              '\u00D7',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${weight.isEmpty ? "—" : weight} kg',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
           ],
         ),
       ),
