@@ -166,15 +166,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
     );
     haptic.setCompleted();
 
-    final isOnline = ref.read(isOnlineProvider);
-
-    if (!isOnline) {
-      await _saveSetOffline(exerciseExecId, setNumber, reps, weight);
-      _showOfflineSnackBar();
-      _checkExerciseAndWorkoutCompletion(exerciseExecId);
-      return;
-    }
-
+    // Always try API first, fall back to offline only on failure
     try {
       final repo = ref.read(workoutRepositoryProvider);
       await repo.logSet(
@@ -185,7 +177,7 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
         actualWeight: weight,
       );
 
-      // Start rest timer using exercise-level rest_time (not set-level rest_duration)
+      // Start rest timer using exercise-level rest_time
       final exercise = wState.exercises.firstWhere((e) => e.id == exerciseExecId);
       final rest = parseRestTimeToSeconds(exercise.restTime);
       if (rest > 0 && mounted) {
