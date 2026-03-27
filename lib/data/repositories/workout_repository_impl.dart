@@ -82,4 +82,8 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
         actualReps: actualReps,
         actualWeight: actualWeight,
       );
+
+  @override
+  Future<ExerciseHistory> getExerciseHistory(int exerciseId) =>
+      _remote.getExerciseHistory(exerciseId);
 }

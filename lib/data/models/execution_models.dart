@@ -32,6 +32,7 @@ class ExerciseExecution with _$ExerciseExecution {
   const factory ExerciseExecution({
     required int id,
     @JsonKey(name: 'workout_plan_exercise') required int planExercise,
+    @JsonKey(name: 'exercise_id') int? exerciseId,
     @JsonKey(name: 'exercise_name') String? exerciseName,
     required int order,
     @JsonKey(name: 'exercise_image') String? exerciseImage,
@@ -108,6 +109,96 @@ class SuggestionSessionInfo with _$SuggestionSessionInfo {
 
   factory SuggestionSessionInfo.fromJson(Map<String, dynamic> json) =>
       _$SuggestionSessionInfoFromJson(json);
+}
+
+// =============================================================================
+// Exercise History Models (plain classes — read-only, no Freezed needed)
+// =============================================================================
+
+class ExerciseHistory {
+  ExerciseHistory({
+    required this.exerciseId,
+    required this.exerciseName,
+    required this.totalSessions,
+    this.maxWeight,
+    this.maxReps,
+    required this.history,
+  });
+
+  final int exerciseId;
+  final String exerciseName;
+  final int totalSessions;
+  final double? maxWeight;
+  final int? maxReps;
+  final List<ExerciseHistorySession> history;
+
+  factory ExerciseHistory.fromJson(Map<String, dynamic> json) {
+    final pr = json['personal_records'] as Map<String, dynamic>?;
+    return ExerciseHistory(
+      exerciseId: json['exercise_id'] as int,
+      exerciseName: json['exercise_name'] as String,
+      totalSessions: json['total_sessions'] as int? ?? 0,
+      maxWeight: (pr?['max_weight'] as num?)?.toDouble(),
+      maxReps: (pr?['max_reps'] as num?)?.toInt(),
+      history: (json['history'] as List<dynamic>? ?? [])
+          .map((e) => ExerciseHistorySession.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class ExerciseHistorySession {
+  ExerciseHistorySession({
+    required this.date,
+    this.sessionName,
+    this.planName,
+    this.weekNumber,
+    required this.sets,
+  });
+
+  final String date;
+  final String? sessionName;
+  final String? planName;
+  final int? weekNumber;
+  final List<ExerciseHistorySet> sets;
+
+  factory ExerciseHistorySession.fromJson(Map<String, dynamic> json) =>
+      ExerciseHistorySession(
+        date: json['date'] as String? ?? '',
+        sessionName: json['session_name'] as String?,
+        planName: json['plan_name'] as String?,
+        weekNumber: json['week_number'] as int?,
+        sets: (json['sets'] as List<dynamic>? ?? [])
+            .map(
+              (e) => ExerciseHistorySet.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+      );
+}
+
+class ExerciseHistorySet {
+  ExerciseHistorySet({
+    required this.setNumber,
+    this.reps,
+    this.weight,
+    this.completed = false,
+    this.notes,
+  });
+
+  final int setNumber;
+  final int? reps;
+  final double? weight;
+  final bool completed;
+  final String? notes;
+
+  factory ExerciseHistorySet.fromJson(Map<String, dynamic> json) =>
+      ExerciseHistorySet(
+        setNumber: json['set_number'] as int? ?? 0,
+        reps: (json['reps'] as num?)?.toInt(),
+        weight: (json['weight'] as num?)?.toDouble(),
+        completed: json['completed'] as bool? ?? false,
+        notes: json['notes'] as String?,
+      );
 }
 
 /// Parses rest time strings like "1'", "90", "1:30", "90s" into seconds.

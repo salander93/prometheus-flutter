@@ -1518,15 +1518,16 @@ class _NoteInput extends StatelessWidget {
 }
 
 /// Storico section — shows historical performance for this exercise.
-/// Currently a placeholder until the API returns exercise history data.
-class _StoricoSection extends StatelessWidget {
+/// Fetches real data from the exercise history API endpoint.
+class _StoricoSection extends ConsumerWidget {
   const _StoricoSection({required this.exercise});
 
   final ExerciseExecution exercise;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
+    final exerciseId = exercise.exerciseId;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1535,52 +1536,143 @@ class _StoricoSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
+      child: exerciseId == null
+          ? _buildPlaceholder(context, textTheme)
+          : _StoricoContent(exerciseId: exerciseId),
+    );
+  }
+
+  Widget _buildPlaceholder(BuildContext context, TextTheme textTheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StoricoHeader(maxWeight: null, maxReps: null),
+        const SizedBox(height: 12),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'Nessuno storico disponibile',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppColors.textMuted,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Header row with STORICO label and PR badges.
+class _StoricoHeader extends StatelessWidget {
+  const _StoricoHeader({required this.maxWeight, required this.maxReps});
+
+  final double? maxWeight;
+  final int? maxReps;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text(
+          'STORICO',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMuted,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const Spacer(),
+        if (maxWeight != null) ...[
+          _PrBadge(
+            label: 'PR: ${maxWeight!.toStringAsFixed(maxWeight! % 1 == 0 ? 0 : 1)}kg',
+          ),
+          const SizedBox(width: 6),
+        ],
+        if (maxReps != null)
+          _PrBadge(label: 'Max: ${maxReps!} reps'),
+        if (maxWeight == null && maxReps == null)
+          _PrBadge(label: 'PR: --'),
+      ],
+    );
+  }
+}
+
+class _PrBadge extends StatelessWidget {
+  const _PrBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.2),
+            AppColors.primaryDark.withValues(alpha: 0.2),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+}
+
+/// The actual content of the storico section, loaded via provider.
+class _StoricoContent extends ConsumerWidget {
+  const _StoricoContent({required this.exerciseId});
+
+  final int exerciseId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final historyAsync = ref.watch(exerciseHistoryProvider(exerciseId));
+
+    return historyAsync.when(
+      loading: () => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: STORICO + PR badges
-          Row(
-            children: [
-              Text(
-                'STORICO',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textMuted,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const Spacer(),
-              // PR badges (placeholder — will be populated with real data)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.2),
-                      AppColors.primaryDark.withValues(alpha: 0.2),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'PR: --',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _StoricoHeader(maxWeight: null, maxReps: null),
           const SizedBox(height: 12),
-          // Placeholder content
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      error: (_, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _StoricoHeader(maxWeight: null, maxReps: null),
+          const SizedBox(height: 12),
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'Nessuno storico disponibile',
+                'Impossibile caricare lo storico',
                 style: textTheme.bodySmall?.copyWith(
                   color: AppColors.textMuted,
                   fontStyle: FontStyle.italic,
@@ -1588,6 +1680,168 @@ class _StoricoSection extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+      data: (history) {
+        final sessions = history.history;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _StoricoHeader(
+              maxWeight: history.maxWeight,
+              maxReps: history.maxReps,
+            ),
+            const SizedBox(height: 12),
+            if (sessions.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Nessuno storico disponibile',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textMuted,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              )
+            else
+              ...sessions.map(
+                (session) => _StoricoSessionCard(session: session),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A single historical session card.
+class _StoricoSessionCard extends StatelessWidget {
+  const _StoricoSessionCard({required this.session});
+
+  final ExerciseHistorySession session;
+
+  String _formatDate(String isoDate) {
+    try {
+      final dt = DateTime.parse(isoDate);
+      return '${dt.day.toString().padLeft(2, '0')}/'
+          '${dt.month.toString().padLeft(2, '0')}/'
+          '${dt.year}';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final completedSets =
+        session.sets.where((s) => s.reps != null).toList();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Session header: date + name/week
+          Row(
+            children: [
+              Text(
+                _formatDate(session.date),
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+              ),
+              if (session.sessionName != null || session.weekNumber != null) ...[
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    [
+                      if (session.sessionName != null) session.sessionName!,
+                      if (session.weekNumber != null)
+                        'W${session.weekNumber}',
+                    ].join(' · '),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Sets
+          if (completedSets.isEmpty)
+            Text(
+              'Nessun set completato',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppColors.textMuted,
+                fontStyle: FontStyle.italic,
+              ),
+            )
+          else
+            ...completedSets.map(
+              (s) => Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Row(
+                  children: [
+                    Text(
+                      'Set ${s.setNumber}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${s.reps}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' reps',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                          if (s.weight != null && s.weight! > 0) ...[
+                            TextSpan(
+                              text: ' x ',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 12,
+                              ),
+                            ),
+                            TextSpan(
+                              text:
+                                  '${s.weight!.toStringAsFixed(s.weight! % 1 == 0 ? 0 : 1)}kg',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const Divider(color: AppColors.border, height: 20, thickness: 0.5),
         ],
       ),
     );

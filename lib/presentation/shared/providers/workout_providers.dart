@@ -55,3 +55,9 @@ final sessionSuggestionProvider =
   final repo = ref.read(workoutRepositoryProvider);
   return repo.suggestSession(planId);
 });
+
+final exerciseHistoryProvider =
+    FutureProvider.family<ExerciseHistory, int>((ref, exerciseId) async {
+  final repo = ref.watch(workoutRepositoryProvider);
+  return repo.getExerciseHistory(exerciseId);
+});

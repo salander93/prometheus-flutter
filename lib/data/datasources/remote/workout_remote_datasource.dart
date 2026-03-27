@@ -153,6 +153,15 @@ class WorkoutRemoteDatasource {
     return ExerciseSet.fromJson(r.data!);
   }
 
+  // ── Exercise history ────────────────────────────────────────────────────
+
+  Future<ExerciseHistory> getExerciseHistory(int exerciseId) async {
+    final r = await _dio.get<Map<String, dynamic>>(
+      '/api/workouts/exercises/$exerciseId/history/',
+    );
+    return ExerciseHistory.fromJson(r.data!);
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────────────
 
   List<T> _parsePaginatedList<T>(

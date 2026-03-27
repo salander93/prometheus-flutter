@@ -40,4 +40,5 @@ abstract class WorkoutRepository {
     int? actualReps,
     double? actualWeight,
   });
+  Future<ExerciseHistory> getExerciseHistory(int exerciseId);
 }

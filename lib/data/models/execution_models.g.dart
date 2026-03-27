@@ -49,6 +49,7 @@ _$ExerciseExecutionImpl _$$ExerciseExecutionImplFromJson(
     _$ExerciseExecutionImpl(
       id: (json['id'] as num).toInt(),
       planExercise: (json['workout_plan_exercise'] as num).toInt(),
+      exerciseId: (json['exercise_id'] as num?)?.toInt(),
       exerciseName: json['exercise_name'] as String?,
       order: (json['order'] as num).toInt(),
       exerciseImage: json['exercise_image'] as String?,
@@ -67,6 +68,7 @@ Map<String, dynamic> _$$ExerciseExecutionImplToJson(
     <String, dynamic>{
       'id': instance.id,
       'workout_plan_exercise': instance.planExercise,
+      'exercise_id': instance.exerciseId,
       'exercise_name': instance.exerciseName,
       'order': instance.order,
       'exercise_image': instance.exerciseImage,

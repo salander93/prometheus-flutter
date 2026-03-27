@@ -463,6 +463,8 @@ mixin _$ExerciseExecution {
   int get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'workout_plan_exercise')
   int get planExercise => throw _privateConstructorUsedError;
+  @JsonKey(name: 'exercise_id')
+  int? get exerciseId => throw _privateConstructorUsedError;
   @JsonKey(name: 'exercise_name')
   String? get exerciseName => throw _privateConstructorUsedError;
   int get order => throw _privateConstructorUsedError;
@@ -496,6 +498,7 @@ abstract class $ExerciseExecutionCopyWith<$Res> {
   $Res call(
       {int id,
       @JsonKey(name: 'workout_plan_exercise') int planExercise,
+      @JsonKey(name: 'exercise_id') int? exerciseId,
       @JsonKey(name: 'exercise_name') String? exerciseName,
       int order,
       @JsonKey(name: 'exercise_image') String? exerciseImage,
@@ -523,6 +526,7 @@ class _$ExerciseExecutionCopyWithImpl<$Res, $Val extends ExerciseExecution>
   $Res call({
     Object? id = null,
     Object? planExercise = null,
+    Object? exerciseId = freezed,
     Object? exerciseName = freezed,
     Object? order = null,
     Object? exerciseImage = freezed,
@@ -541,6 +545,10 @@ class _$ExerciseExecutionCopyWithImpl<$Res, $Val extends ExerciseExecution>
           ? _value.planExercise
           : planExercise // ignore: cast_nullable_to_non_nullable
               as int,
+      exerciseId: freezed == exerciseId
+          ? _value.exerciseId
+          : exerciseId // ignore: cast_nullable_to_non_nullable
+              as int?,
       exerciseName: freezed == exerciseName
           ? _value.exerciseName
           : exerciseName // ignore: cast_nullable_to_non_nullable
@@ -588,6 +596,7 @@ abstract class _$$ExerciseExecutionImplCopyWith<$Res>
   $Res call(
       {int id,
       @JsonKey(name: 'workout_plan_exercise') int planExercise,
+      @JsonKey(name: 'exercise_id') int? exerciseId,
       @JsonKey(name: 'exercise_name') String? exerciseName,
       int order,
       @JsonKey(name: 'exercise_image') String? exerciseImage,
@@ -613,6 +622,7 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? planExercise = null,
+    Object? exerciseId = freezed,
     Object? exerciseName = freezed,
     Object? order = null,
     Object? exerciseImage = freezed,
@@ -631,6 +641,10 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
           ? _value.planExercise
           : planExercise // ignore: cast_nullable_to_non_nullable
               as int,
+      exerciseId: freezed == exerciseId
+          ? _value.exerciseId
+          : exerciseId // ignore: cast_nullable_to_non_nullable
+              as int?,
       exerciseName: freezed == exerciseName
           ? _value.exerciseName
           : exerciseName // ignore: cast_nullable_to_non_nullable
@@ -673,6 +687,7 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
   const _$ExerciseExecutionImpl(
       {required this.id,
       @JsonKey(name: 'workout_plan_exercise') required this.planExercise,
+      @JsonKey(name: 'exercise_id') this.exerciseId,
       @JsonKey(name: 'exercise_name') this.exerciseName,
       required this.order,
       @JsonKey(name: 'exercise_image') this.exerciseImage,
@@ -691,6 +706,9 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
   @override
   @JsonKey(name: 'workout_plan_exercise')
   final int planExercise;
+  @override
+  @JsonKey(name: 'exercise_id')
+  final int? exerciseId;
   @override
   @JsonKey(name: 'exercise_name')
   final String? exerciseName;
@@ -721,7 +739,7 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
 
   @override
   String toString() {
-    return 'ExerciseExecution(id: $id, planExercise: $planExercise, exerciseName: $exerciseName, order: $order, exerciseImage: $exerciseImage, restTime: $restTime, targetSets: $targetSets, targetReps: $targetReps, notes: $notes, sets: $sets)';
+    return 'ExerciseExecution(id: $id, planExercise: $planExercise, exerciseId: $exerciseId, exerciseName: $exerciseName, order: $order, exerciseImage: $exerciseImage, restTime: $restTime, targetSets: $targetSets, targetReps: $targetReps, notes: $notes, sets: $sets)';
   }
 
   @override
@@ -732,6 +750,8 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.planExercise, planExercise) ||
                 other.planExercise == planExercise) &&
+            (identical(other.exerciseId, exerciseId) ||
+                other.exerciseId == exerciseId) &&
             (identical(other.exerciseName, exerciseName) ||
                 other.exerciseName == exerciseName) &&
             (identical(other.order, order) || other.order == order) &&
@@ -753,6 +773,7 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
       runtimeType,
       id,
       planExercise,
+      exerciseId,
       exerciseName,
       order,
       exerciseImage,
@@ -783,6 +804,7 @@ abstract class _ExerciseExecution implements ExerciseExecution {
   const factory _ExerciseExecution(
       {required final int id,
       @JsonKey(name: 'workout_plan_exercise') required final int planExercise,
+      @JsonKey(name: 'exercise_id') final int? exerciseId,
       @JsonKey(name: 'exercise_name') final String? exerciseName,
       required final int order,
       @JsonKey(name: 'exercise_image') final String? exerciseImage,
@@ -800,6 +822,9 @@ abstract class _ExerciseExecution implements ExerciseExecution {
   @override
   @JsonKey(name: 'workout_plan_exercise')
   int get planExercise;
+  @override
+  @JsonKey(name: 'exercise_id')
+  int? get exerciseId;
   @override
   @JsonKey(name: 'exercise_name')
   String? get exerciseName;
