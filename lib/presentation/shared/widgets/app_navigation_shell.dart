@@ -428,7 +428,7 @@ class _PillNavItemState extends State<_PillNavItem>
                     ),
                   ],
                 ),
-                child: FlameIcon(size: 24, color: AppColors.primary),
+                child: FlameIcon(size: 24, color: widget.isSelected ? Colors.white : AppColors.primary),
               ),
             ),
           );

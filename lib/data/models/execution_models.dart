@@ -35,6 +35,9 @@ class ExerciseExecution with _$ExerciseExecution {
     @JsonKey(name: 'exercise_name') String? exerciseName,
     required int order,
     @JsonKey(name: 'exercise_image') String? exerciseImage,
+    @JsonKey(name: 'rest_time') String? restTime,
+    @JsonKey(name: 'target_sets') int? targetSets,
+    @JsonKey(name: 'target_reps') String? targetReps,
     String? notes,
     @Default([]) List<ExerciseSet> sets,
   }) = _ExerciseExecution;
@@ -105,6 +108,27 @@ class SuggestionSessionInfo with _$SuggestionSessionInfo {
 
   factory SuggestionSessionInfo.fromJson(Map<String, dynamic> json) =>
       _$SuggestionSessionInfoFromJson(json);
+}
+
+/// Parses rest time strings like "1'", "90", "1:30", "90s" into seconds.
+int parseRestTimeToSeconds(String? restTime) {
+  if (restTime == null || restTime.isEmpty) return 0;
+  final s = restTime.trim();
+  // "1'" or "2'" → minutes
+  if (s.endsWith("'")) {
+    final mins = int.tryParse(s.substring(0, s.length - 1));
+    if (mins != null) return mins * 60;
+  }
+  // "1:30" → minutes:seconds
+  if (s.contains(':')) {
+    final parts = s.split(':');
+    final mins = int.tryParse(parts[0]) ?? 0;
+    final secs = int.tryParse(parts[1]) ?? 0;
+    return mins * 60 + secs;
+  }
+  // "90" or "90s" → seconds
+  final cleaned = s.replaceAll(RegExp(r'[^\d]'), '');
+  return int.tryParse(cleaned) ?? 0;
 }
 
 int? _intFromJson(dynamic value) {

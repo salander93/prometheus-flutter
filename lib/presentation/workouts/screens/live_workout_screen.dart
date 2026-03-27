@@ -185,10 +185,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
         actualWeight: weight,
       );
 
-      // Start rest timer if needed
+      // Start rest timer using exercise-level rest_time (not set-level rest_duration)
       final exercise = wState.exercises.firstWhere((e) => e.id == exerciseExecId);
-      final set = exercise.sets.firstWhere((s) => s.setNumber == setNumber);
-      final rest = set.restDuration ?? 0;
+      final rest = parseRestTimeToSeconds(exercise.restTime);
       if (rest > 0 && mounted) {
         ref.read(restTimerProvider.notifier).start(
               totalSeconds: rest,
@@ -578,10 +577,9 @@ class _LiveWorkoutScreenState extends ConsumerState<LiveWorkoutScreen> {
                       },
                       onSkipTimer: () => ref.read(restTimerProvider.notifier).skip(),
                       onStartTimer: () {
-                        final firstSet = exe.sets.isNotEmpty ? exe.sets.first : null;
-                        final rest = firstSet?.restDuration ?? 60;
+                        final rest = parseRestTimeToSeconds(exe.restTime);
                         ref.read(restTimerProvider.notifier).start(
-                              totalSeconds: rest,
+                              totalSeconds: rest > 0 ? rest : 60,
                               exerciseExecId: exe.id,
                             );
                       },

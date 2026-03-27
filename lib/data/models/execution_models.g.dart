@@ -52,6 +52,9 @@ _$ExerciseExecutionImpl _$$ExerciseExecutionImplFromJson(
       exerciseName: json['exercise_name'] as String?,
       order: (json['order'] as num).toInt(),
       exerciseImage: json['exercise_image'] as String?,
+      restTime: json['rest_time'] as String?,
+      targetSets: (json['target_sets'] as num?)?.toInt(),
+      targetReps: json['target_reps'] as String?,
       notes: json['notes'] as String?,
       sets: (json['sets'] as List<dynamic>?)
               ?.map((e) => ExerciseSet.fromJson(e as Map<String, dynamic>))
@@ -67,6 +70,9 @@ Map<String, dynamic> _$$ExerciseExecutionImplToJson(
       'exercise_name': instance.exerciseName,
       'order': instance.order,
       'exercise_image': instance.exerciseImage,
+      'rest_time': instance.restTime,
+      'target_sets': instance.targetSets,
+      'target_reps': instance.targetReps,
       'notes': instance.notes,
       'sets': instance.sets,
     };

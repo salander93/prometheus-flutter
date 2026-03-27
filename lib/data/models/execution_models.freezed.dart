@@ -468,6 +468,12 @@ mixin _$ExerciseExecution {
   int get order => throw _privateConstructorUsedError;
   @JsonKey(name: 'exercise_image')
   String? get exerciseImage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'rest_time')
+  String? get restTime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'target_sets')
+  int? get targetSets => throw _privateConstructorUsedError;
+  @JsonKey(name: 'target_reps')
+  String? get targetReps => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   List<ExerciseSet> get sets => throw _privateConstructorUsedError;
 
@@ -493,6 +499,9 @@ abstract class $ExerciseExecutionCopyWith<$Res> {
       @JsonKey(name: 'exercise_name') String? exerciseName,
       int order,
       @JsonKey(name: 'exercise_image') String? exerciseImage,
+      @JsonKey(name: 'rest_time') String? restTime,
+      @JsonKey(name: 'target_sets') int? targetSets,
+      @JsonKey(name: 'target_reps') String? targetReps,
       String? notes,
       List<ExerciseSet> sets});
 }
@@ -517,6 +526,9 @@ class _$ExerciseExecutionCopyWithImpl<$Res, $Val extends ExerciseExecution>
     Object? exerciseName = freezed,
     Object? order = null,
     Object? exerciseImage = freezed,
+    Object? restTime = freezed,
+    Object? targetSets = freezed,
+    Object? targetReps = freezed,
     Object? notes = freezed,
     Object? sets = null,
   }) {
@@ -540,6 +552,18 @@ class _$ExerciseExecutionCopyWithImpl<$Res, $Val extends ExerciseExecution>
       exerciseImage: freezed == exerciseImage
           ? _value.exerciseImage
           : exerciseImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      restTime: freezed == restTime
+          ? _value.restTime
+          : restTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetSets: freezed == targetSets
+          ? _value.targetSets
+          : targetSets // ignore: cast_nullable_to_non_nullable
+              as int?,
+      targetReps: freezed == targetReps
+          ? _value.targetReps
+          : targetReps // ignore: cast_nullable_to_non_nullable
               as String?,
       notes: freezed == notes
           ? _value.notes
@@ -567,6 +591,9 @@ abstract class _$$ExerciseExecutionImplCopyWith<$Res>
       @JsonKey(name: 'exercise_name') String? exerciseName,
       int order,
       @JsonKey(name: 'exercise_image') String? exerciseImage,
+      @JsonKey(name: 'rest_time') String? restTime,
+      @JsonKey(name: 'target_sets') int? targetSets,
+      @JsonKey(name: 'target_reps') String? targetReps,
       String? notes,
       List<ExerciseSet> sets});
 }
@@ -589,6 +616,9 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
     Object? exerciseName = freezed,
     Object? order = null,
     Object? exerciseImage = freezed,
+    Object? restTime = freezed,
+    Object? targetSets = freezed,
+    Object? targetReps = freezed,
     Object? notes = freezed,
     Object? sets = null,
   }) {
@@ -613,6 +643,18 @@ class __$$ExerciseExecutionImplCopyWithImpl<$Res>
           ? _value.exerciseImage
           : exerciseImage // ignore: cast_nullable_to_non_nullable
               as String?,
+      restTime: freezed == restTime
+          ? _value.restTime
+          : restTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetSets: freezed == targetSets
+          ? _value.targetSets
+          : targetSets // ignore: cast_nullable_to_non_nullable
+              as int?,
+      targetReps: freezed == targetReps
+          ? _value.targetReps
+          : targetReps // ignore: cast_nullable_to_non_nullable
+              as String?,
       notes: freezed == notes
           ? _value.notes
           : notes // ignore: cast_nullable_to_non_nullable
@@ -634,6 +676,9 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
       @JsonKey(name: 'exercise_name') this.exerciseName,
       required this.order,
       @JsonKey(name: 'exercise_image') this.exerciseImage,
+      @JsonKey(name: 'rest_time') this.restTime,
+      @JsonKey(name: 'target_sets') this.targetSets,
+      @JsonKey(name: 'target_reps') this.targetReps,
       this.notes,
       final List<ExerciseSet> sets = const []})
       : _sets = sets;
@@ -655,6 +700,15 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
   @JsonKey(name: 'exercise_image')
   final String? exerciseImage;
   @override
+  @JsonKey(name: 'rest_time')
+  final String? restTime;
+  @override
+  @JsonKey(name: 'target_sets')
+  final int? targetSets;
+  @override
+  @JsonKey(name: 'target_reps')
+  final String? targetReps;
+  @override
   final String? notes;
   final List<ExerciseSet> _sets;
   @override
@@ -667,7 +721,7 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
 
   @override
   String toString() {
-    return 'ExerciseExecution(id: $id, planExercise: $planExercise, exerciseName: $exerciseName, order: $order, exerciseImage: $exerciseImage, notes: $notes, sets: $sets)';
+    return 'ExerciseExecution(id: $id, planExercise: $planExercise, exerciseName: $exerciseName, order: $order, exerciseImage: $exerciseImage, restTime: $restTime, targetSets: $targetSets, targetReps: $targetReps, notes: $notes, sets: $sets)';
   }
 
   @override
@@ -683,14 +737,30 @@ class _$ExerciseExecutionImpl implements _ExerciseExecution {
             (identical(other.order, order) || other.order == order) &&
             (identical(other.exerciseImage, exerciseImage) ||
                 other.exerciseImage == exerciseImage) &&
+            (identical(other.restTime, restTime) ||
+                other.restTime == restTime) &&
+            (identical(other.targetSets, targetSets) ||
+                other.targetSets == targetSets) &&
+            (identical(other.targetReps, targetReps) ||
+                other.targetReps == targetReps) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             const DeepCollectionEquality().equals(other._sets, _sets));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, planExercise, exerciseName,
-      order, exerciseImage, notes, const DeepCollectionEquality().hash(_sets));
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      planExercise,
+      exerciseName,
+      order,
+      exerciseImage,
+      restTime,
+      targetSets,
+      targetReps,
+      notes,
+      const DeepCollectionEquality().hash(_sets));
 
   /// Create a copy of ExerciseExecution
   /// with the given fields replaced by the non-null parameter values.
@@ -716,6 +786,9 @@ abstract class _ExerciseExecution implements ExerciseExecution {
       @JsonKey(name: 'exercise_name') final String? exerciseName,
       required final int order,
       @JsonKey(name: 'exercise_image') final String? exerciseImage,
+      @JsonKey(name: 'rest_time') final String? restTime,
+      @JsonKey(name: 'target_sets') final int? targetSets,
+      @JsonKey(name: 'target_reps') final String? targetReps,
       final String? notes,
       final List<ExerciseSet> sets}) = _$ExerciseExecutionImpl;
 
@@ -735,6 +808,15 @@ abstract class _ExerciseExecution implements ExerciseExecution {
   @override
   @JsonKey(name: 'exercise_image')
   String? get exerciseImage;
+  @override
+  @JsonKey(name: 'rest_time')
+  String? get restTime;
+  @override
+  @JsonKey(name: 'target_sets')
+  int? get targetSets;
+  @override
+  @JsonKey(name: 'target_reps')
+  String? get targetReps;
   @override
   String? get notes;
   @override
