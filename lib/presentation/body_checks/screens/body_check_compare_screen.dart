@@ -3,9 +3,11 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:palestra/core/api/api_constants.dart';
 import 'package:palestra/core/theme/app_colors.dart';
@@ -55,6 +57,118 @@ class _TimelinePhoto {
 String _fullUrl(String url) {
   if (url.startsWith('http')) return url;
   return '${ApiConstants.baseUrl}$url';
+}
+
+// ---------------------------------------------------------
+// Animated GIF helpers (top-level for compute isolate)
+// ---------------------------------------------------------
+
+class _GifParams {
+  const _GifParams({
+    required this.beforeBytes,
+    required this.afterBytes,
+  });
+  final Uint8List beforeBytes;
+  final Uint8List afterBytes;
+}
+
+double _easeInOutCubic(double t) {
+  return t < 0.5
+      ? 4 * t * t * t
+      : 1 - ((-2 * t + 2) * (-2 * t + 2) * (-2 * t + 2)) / 2;
+}
+
+/// Builds a blended frame from [a] and [b] with blend factor [t] (0=a, 1=b).
+img.Image _blendFrames(
+  img.Image a,
+  img.Image b,
+  double t,
+  int width,
+  int height,
+) {
+  final frame = img.Image(width: width, height: height);
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      final c1 = a.getPixel(x, y);
+      final c2 = b.getPixel(x, y);
+      final r = (c1.r * (1 - t) + c2.r * t).round();
+      final g = (c1.g * (1 - t) + c2.g * t).round();
+      final b2 = (c1.b * (1 - t) + c2.b * t).round();
+      frame.setPixel(x, y, img.ColorRgb8(r, g, b2));
+    }
+  }
+  return frame;
+}
+
+Uint8List _createAnimatedGifIsolate(_GifParams params) {
+  final before = img.decodeImage(params.beforeBytes)!;
+  final after = img.decodeImage(params.afterBytes)!;
+
+  const targetWidth = 400;
+  final targetHeight =
+      (before.height * targetWidth / before.width).round();
+
+  final beforeResized = img.copyResize(
+    before,
+    width: targetWidth,
+    height: targetHeight,
+  );
+  final afterResized = img.copyResize(
+    after,
+    width: targetWidth,
+    height: targetHeight,
+  );
+
+  // The first frame IS the animation root in image v4.
+  final firstFrame = img.Image.from(beforeResized)
+    ..frameDuration = 100
+    ..loopCount = 0; // infinite loop
+
+  // Remaining hold-before frames (9 more → total 10 = 1 s)
+  for (var i = 1; i < 10; i++) {
+    firstFrame.addFrame(
+      img.Image.from(beforeResized)..frameDuration = 100,
+    );
+  }
+
+  // Cross-fade before → after (10 frames × 100 ms = 1 s)
+  for (var i = 0; i < 10; i++) {
+    final t = i / 9.0;
+    final eased = _easeInOutCubic(t);
+    firstFrame.addFrame(
+      _blendFrames(
+        beforeResized,
+        afterResized,
+        eased,
+        targetWidth,
+        targetHeight,
+      )..frameDuration = 100,
+    );
+  }
+
+  // Hold after (10 frames × 100 ms = 1 s)
+  for (var i = 0; i < 10; i++) {
+    firstFrame.addFrame(
+      img.Image.from(afterResized)..frameDuration = 100,
+    );
+  }
+
+  // Cross-fade after → before (10 frames × 100 ms = 1 s)
+  for (var i = 0; i < 10; i++) {
+    final t = i / 9.0;
+    final eased = _easeInOutCubic(t);
+    firstFrame.addFrame(
+      _blendFrames(
+        afterResized,
+        beforeResized,
+        eased,
+        targetWidth,
+        targetHeight,
+      )..frameDuration = 100,
+    );
+  }
+
+  return Uint8List.fromList(img.encodeGif(firstFrame));
 }
 
 // ---------------------------------------------------------
@@ -281,6 +395,41 @@ class _BodyCheckCompareScreenState
                     _exportSideBySideImage();
                   },
                 ),
+                ListTile(
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary
+                          .withValues(alpha: 0.15),
+                      borderRadius:
+                          BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.movie_creation_outlined,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  title: const Text(
+                    'Video Animato (Slider)',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'GIF animata con transizione prima/dopo',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _generateAnimatedGif();
+                  },
+                ),
               ],
             ),
           ),
@@ -377,6 +526,102 @@ class _BodyCheckCompareScreenState
         ),
       );
     }
+  }
+
+  Future<void> _generateAnimatedGif() async {
+    if (_before == null || _after == null) return;
+
+    if (!mounted) return;
+    unawaited(showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          color: AppColors.backgroundCard,
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Generando GIF animata...',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),);
+
+    try {
+      final beforeBytes =
+          await _loadImageBytes(_before!.photoUrl);
+      final afterBytes =
+          await _loadImageBytes(_after!.photoUrl);
+
+      final gifBytes = await compute(
+        _createAnimatedGifIsolate,
+        _GifParams(
+          beforeBytes: beforeBytes,
+          afterBytes: afterBytes,
+        ),
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss loading
+
+      final beforeDate =
+          _before!.date.replaceAll('-', '');
+      final afterDate =
+          _after!.date.replaceAll('-', '');
+      final fileName =
+          'confronto_${beforeDate}_$afterDate.gif';
+
+      if (kIsWeb) {
+        await Share.shareXFiles(
+          [
+            XFile.fromData(
+              gifBytes,
+              mimeType: 'image/gif',
+              name: fileName,
+            ),
+          ],
+          fileNameOverrides: [fileName],
+        );
+      } else {
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/$fileName');
+        await file.writeAsBytes(gifBytes);
+        await Share.shareXFiles([XFile(file.path)]);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Errore durante l'esportazione: $e",
+          ),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  Future<Uint8List> _loadImageBytes(String url) async {
+    final dio = Dio();
+    final response = await dio.get<List<int>>(
+      url,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data!);
   }
 
   Future<ui.Image> _loadNetworkImage(String url) {
