@@ -104,7 +104,8 @@ Uint8List _createAnimatedGifIsolate(_GifParams params) {
   final before = img.decodeImage(params.beforeBytes)!;
   final after = img.decodeImage(params.afterBytes)!;
 
-  const targetWidth = 400;
+  // Small resolution for fast generation
+  const targetWidth = 250;
   final targetHeight =
       (before.height * targetWidth / before.width).round();
 
@@ -112,59 +113,51 @@ Uint8List _createAnimatedGifIsolate(_GifParams params) {
     before,
     width: targetWidth,
     height: targetHeight,
+    interpolation: img.Interpolation.average,
   );
   final afterResized = img.copyResize(
     after,
     width: targetWidth,
     height: targetHeight,
+    interpolation: img.Interpolation.average,
   );
 
-  // The first frame IS the animation root in image v4.
+  // Fewer frames for speed: 16 total (~3.2s at 200ms per frame)
   final firstFrame = img.Image.from(beforeResized)
-    ..frameDuration = 100
-    ..loopCount = 0; // infinite loop
+    ..frameDuration = 200
+    ..loopCount = 0;
 
-  // Remaining hold-before frames (9 more → total 10 = 1 s)
-  for (var i = 1; i < 10; i++) {
+  // Hold before (3 frames × 200ms = 0.6s)
+  for (var i = 1; i < 4; i++) {
     firstFrame.addFrame(
-      img.Image.from(beforeResized)..frameDuration = 100,
+      img.Image.from(beforeResized)..frameDuration = 200,
     );
   }
 
-  // Cross-fade before → after (10 frames × 100 ms = 1 s)
-  for (var i = 0; i < 10; i++) {
-    final t = i / 9.0;
+  // Cross-fade before → after (5 frames × 200ms = 1s)
+  for (var i = 0; i < 5; i++) {
+    final t = i / 4.0;
     final eased = _easeInOutCubic(t);
     firstFrame.addFrame(
-      _blendFrames(
-        beforeResized,
-        afterResized,
-        eased,
-        targetWidth,
-        targetHeight,
-      )..frameDuration = 100,
+      _blendFrames(beforeResized, afterResized, eased, targetWidth, targetHeight)
+        ..frameDuration = 200,
     );
   }
 
-  // Hold after (10 frames × 100 ms = 1 s)
-  for (var i = 0; i < 10; i++) {
+  // Hold after (3 frames × 200ms = 0.6s)
+  for (var i = 0; i < 3; i++) {
     firstFrame.addFrame(
-      img.Image.from(afterResized)..frameDuration = 100,
+      img.Image.from(afterResized)..frameDuration = 200,
     );
   }
 
-  // Cross-fade after → before (10 frames × 100 ms = 1 s)
-  for (var i = 0; i < 10; i++) {
-    final t = i / 9.0;
+  // Cross-fade after → before (5 frames × 200ms = 1s)
+  for (var i = 0; i < 5; i++) {
+    final t = i / 4.0;
     final eased = _easeInOutCubic(t);
     firstFrame.addFrame(
-      _blendFrames(
-        afterResized,
-        beforeResized,
-        eased,
-        targetWidth,
-        targetHeight,
-      )..frameDuration = 100,
+      _blendFrames(afterResized, beforeResized, eased, targetWidth, targetHeight)
+        ..frameDuration = 200,
     );
   }
 
@@ -570,13 +563,17 @@ class _BodyCheckCompareScreenState
       final afterBytes =
           await _loadImageBytes(_after!.photoUrl);
 
-      final gifBytes = await compute(
-        _createAnimatedGifIsolate,
-        _GifParams(
-          beforeBytes: beforeBytes,
-          afterBytes: afterBytes,
-        ),
+      // compute() doesn't work on web — run directly on web
+      final params = _GifParams(
+        beforeBytes: beforeBytes,
+        afterBytes: afterBytes,
       );
+      final Uint8List gifBytes;
+      if (kIsWeb) {
+        gifBytes = _createAnimatedGifIsolate(params);
+      } else {
+        gifBytes = await compute(_createAnimatedGifIsolate, params);
+      }
 
       if (!mounted) return;
       Navigator.pop(context); // dismiss loading
