@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +11,8 @@ import 'package:palestra/core/api/api_constants.dart';
 import 'package:palestra/core/theme/app_colors.dart';
 import 'package:palestra/presentation/shared/providers/'
     'body_check_providers.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 // ---------------------------------------------------------
 // Constants
@@ -206,6 +213,390 @@ class _BodyCheckCompareScreenState
       _after!.bodyCheckId == p.bodyCheckId &&
       _after!.photoUrl == p.photoUrl;
 
+  // ── Export / Download ──
+
+  void _showExportSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.backgroundCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              20,
+              16,
+              16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Esporta Confronto',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary
+                          .withValues(alpha: 0.15),
+                      borderRadius:
+                          BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.image_rounded,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  title: const Text(
+                    'Scarica Immagine Affiancata',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'PNG con foto prima e dopo '
+                    'affiancate',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _exportSideBySideImage();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _exportSideBySideImage() async {
+    if (_before == null || _after == null) return;
+
+    // Show loading dialog
+    if (!mounted) return;
+    unawaited(showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          color: AppColors.backgroundCard,
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Generando immagine...',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),);
+
+    try {
+      final beforeImg =
+          await _loadNetworkImage(_before!.photoUrl);
+      final afterImg =
+          await _loadNetworkImage(_after!.photoUrl);
+
+      final pngBytes = await _compositeSideBySide(
+        beforeImg,
+        afterImg,
+        _before!.date,
+        _after!.date,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss loading
+
+      final beforeDate =
+          _before!.date.replaceAll('-', '');
+      final afterDate =
+          _after!.date.replaceAll('-', '');
+      final fileName =
+          'confronto_${beforeDate}_$afterDate.png';
+
+      if (kIsWeb) {
+        // Web: share_plus falls back to download
+        await Share.shareXFiles(
+          [
+            XFile.fromData(
+              pngBytes,
+              mimeType: 'image/png',
+              name: fileName,
+            ),
+          ],
+          fileNameOverrides: [fileName],
+        );
+      } else {
+        // Mobile: save to temp dir and share
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/$fileName');
+        await file.writeAsBytes(pngBytes);
+
+        await Share.shareXFiles([XFile(file.path)]);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Errore durante l'esportazione: $e",
+          ),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  Future<ui.Image> _loadNetworkImage(String url) {
+    final completer = Completer<ui.Image>();
+    final provider = NetworkImage(url);
+    final stream = provider.resolve(
+      ImageConfiguration.empty,
+    );
+    late ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (info, _) {
+        completer.complete(info.image);
+        stream.removeListener(listener);
+      },
+      onError: (error, _) {
+        completer.completeError(error);
+        stream.removeListener(listener);
+      },
+    );
+    stream.addListener(listener);
+    return completer.future;
+  }
+
+  Future<Uint8List> _compositeSideBySide(
+    ui.Image beforeImage,
+    ui.Image afterImage,
+    String beforeDate,
+    String afterDate,
+  ) async {
+    const targetHeight = 800.0;
+    const padding = 24.0;
+    const headerHeight = 70.0;
+    const footerHeight = 50.0;
+
+    // Scale both to same height
+    final scale1 =
+        targetHeight / beforeImage.height;
+    final scale2 =
+        targetHeight / afterImage.height;
+    final w1 = beforeImage.width * scale1;
+    final w2 = afterImage.width * scale2;
+
+    final totalWidth = w1 + w2 + padding * 3;
+    const totalHeight = targetHeight +
+        headerHeight +
+        footerHeight +
+        padding * 2;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(
+      recorder,
+      Rect.fromLTWH(0, 0, totalWidth, totalHeight),
+    )
+      // Dark background
+      ..drawRect(
+        Rect.fromLTWH(0, 0, totalWidth, totalHeight),
+        Paint()..color = const Color(0xFF0A0A0A),
+      );
+
+    // Header: "Confronto Progressi"
+    final headerPainter = TextPainter(
+      text: const TextSpan(
+        text: 'Confronto Progressi',
+        style: TextStyle(
+          color: Color(0xFFFAFAFA),
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+    )..layout(maxWidth: totalWidth);
+    headerPainter.paint(
+      canvas,
+      Offset(
+        (totalWidth - headerPainter.width) / 2,
+        padding,
+      ),
+    );
+
+    // Before image
+    final beforeSrc = Rect.fromLTWH(
+      0,
+      0,
+      beforeImage.width.toDouble(),
+      beforeImage.height.toDouble(),
+    );
+    final beforeDst = Rect.fromLTWH(
+      padding,
+      headerHeight + padding,
+      w1,
+      targetHeight,
+    );
+    canvas.drawImageRect(
+      beforeImage,
+      beforeSrc,
+      beforeDst,
+      Paint()..filterQuality = FilterQuality.high,
+    );
+
+    // After image
+    final afterSrc = Rect.fromLTWH(
+      0,
+      0,
+      afterImage.width.toDouble(),
+      afterImage.height.toDouble(),
+    );
+    final afterDst = Rect.fromLTWH(
+      padding * 2 + w1,
+      headerHeight + padding,
+      w2,
+      targetHeight,
+    );
+    canvas.drawImageRect(
+      afterImage,
+      afterSrc,
+      afterDst,
+      Paint()..filterQuality = FilterQuality.high,
+    );
+
+    // "Prima" label with color bar
+    _drawColorBar(
+      canvas,
+      Rect.fromLTWH(
+        padding,
+        headerHeight + padding - 4,
+        w1,
+        4,
+      ),
+      _kBeforeColor,
+    );
+    _drawColorBar(
+      canvas,
+      Rect.fromLTWH(
+        padding * 2 + w1,
+        headerHeight + padding - 4,
+        w2,
+        4,
+      ),
+      _kAfterColor,
+    );
+
+    // Date labels below images
+    final fmtBefore = _fmtDateForExport(beforeDate);
+    final fmtAfter = _fmtDateForExport(afterDate);
+
+    const dateY =
+        headerHeight + padding + targetHeight + 12;
+
+    _drawCenteredText(
+      canvas,
+      'Prima  -  $fmtBefore',
+      Offset(padding + w1 / 2, dateY),
+      const TextStyle(
+        color: Color(0xFFA1A1AA),
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+
+    _drawCenteredText(
+      canvas,
+      'Dopo  -  $fmtAfter',
+      Offset(padding * 2 + w1 + w2 / 2, dateY),
+      const TextStyle(
+        color: Color(0xFFA1A1AA),
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(
+      totalWidth.toInt(),
+      totalHeight.toInt(),
+    );
+    final byteData = await img.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
+    return byteData!.buffer.asUint8List();
+  }
+
+  void _drawColorBar(
+    Canvas canvas,
+    Rect rect,
+    Color color,
+  ) {
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(2)),
+      Paint()..color = color,
+    );
+  }
+
+  void _drawCenteredText(
+    Canvas canvas,
+    String text,
+    Offset center,
+    TextStyle style,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+    painter.paint(
+      canvas,
+      Offset(
+        center.dx - painter.width / 2,
+        center.dy,
+      ),
+    );
+  }
+
+  String _fmtDateForExport(String d) {
+    try {
+      final dt = DateTime.parse(d);
+      return DateFormat('d MMMM yyyy', 'it').format(dt);
+    } catch (_) {
+      return d;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch provider to rebuild when data arrives.
@@ -216,6 +607,15 @@ class _BodyCheckCompareScreenState
       appBar: AppBar(
         backgroundColor: AppColors.backgroundBase,
         title: const Text('Confronto Progressi'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            tooltip: 'Scarica confronto',
+            onPressed: _before != null && _after != null
+                ? _showExportSheet
+                : null,
+          ),
+        ],
       ),
       body: asyncChecks.when(
         loading: () => const Center(
