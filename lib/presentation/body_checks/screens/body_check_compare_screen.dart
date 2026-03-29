@@ -496,16 +496,20 @@ class _BodyCheckCompareScreenState
 
       if (kIsWeb) {
         // Web: share_plus falls back to download
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              pngBytes,
-              mimeType: 'image/png',
-              name: fileName,
-            ),
-          ],
-          fileNameOverrides: [fileName],
-        );
+        try {
+          await Share.shareXFiles(
+            [
+              XFile.fromData(
+                pngBytes,
+                mimeType: 'image/png',
+                name: fileName,
+              ),
+            ],
+            fileNameOverrides: [fileName],
+          );
+        } catch (_) {
+          // Web share may throw; dialog already dismissed — ignore.
+        }
       } else {
         // Mobile: save to temp dir and share
         final dir = await getTemporaryDirectory();
@@ -585,16 +589,20 @@ class _BodyCheckCompareScreenState
           'confronto_${beforeDate}_$afterDate.gif';
 
       if (kIsWeb) {
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              gifBytes,
-              mimeType: 'image/gif',
-              name: fileName,
-            ),
-          ],
-          fileNameOverrides: [fileName],
-        );
+        try {
+          await Share.shareXFiles(
+            [
+              XFile.fromData(
+                gifBytes,
+                mimeType: 'image/gif',
+                name: fileName,
+              ),
+            ],
+            fileNameOverrides: [fileName],
+          );
+        } catch (_) {
+          // Web share may throw; dialog already dismissed — ignore.
+        }
       } else {
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/$fileName');

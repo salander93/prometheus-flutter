@@ -30,6 +30,13 @@ final trainerSearchResultsProvider = FutureProvider.autoDispose
   },
 );
 
+/// Fetches all available trainers (no filter) for the initial list.
+final allAvailableTrainersProvider =
+    FutureProvider.autoDispose<List<TrainerSearchResult>>((ref) async {
+  final repo = ref.watch(socialRepositoryProvider);
+  return repo.searchTrainers();
+});
+
 final trainerByCodeProvider = FutureProvider.autoDispose
     .family<List<TrainerSearchResult>, String>(
   (ref, code) async {

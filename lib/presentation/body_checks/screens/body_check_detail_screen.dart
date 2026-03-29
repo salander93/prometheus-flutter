@@ -312,7 +312,9 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                     currentPage: _currentPage,
                     onPageChanged: (p) =>
                         setState(() => _currentPage = p),
-                    onAddPhoto: isOwner ? _addPhoto : null,
+                    onAddPhoto: (isOwner && bodyCheck.photos.length < 4)
+                        ? _addPhoto
+                        : null,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -325,7 +327,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                   ),
                 ),
                 const SliverToBoxAdapter(
-                  child: SizedBox(height: 16),
+                  child: SizedBox(height: 120),
                 ),
               ],
             ),

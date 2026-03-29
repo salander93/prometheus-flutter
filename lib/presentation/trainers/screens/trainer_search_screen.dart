@@ -78,6 +78,7 @@ class _TrainerSearchScreenState extends ConsumerState<TrainerSearchScreen> {
     final searchAsync = ref.watch(
       trainerSearchResultsProvider(_activeQuery),
     );
+    final allTrainersAsync = ref.watch(allAvailableTrainersProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -173,8 +174,38 @@ class _TrainerSearchScreenState extends ConsumerState<TrainerSearchScreen> {
 
             // ── Search results ─────────────────────────────────────────────
             if (_activeQuery.isEmpty)
-              const SliverToBoxAdapter(
-                child: _EmptySearchPrompt(),
+              allTrainersAsync.when(
+                data: (results) {
+                  if (results.isEmpty) {
+                    return const SliverToBoxAdapter(
+                      child: _EmptySearchPrompt(),
+                    );
+                  }
+                  final connectedIds = trainersAsync
+                          .valueOrNull
+                          ?.map((t) => t.trainer)
+                          .toSet() ??
+                      {};
+                  return _SearchResultsGrid(
+                    results: results,
+                    connectedIds: connectedIds,
+                    pendingRequests: _pendingRequests,
+                    onRequestSent: (trainerId) {
+                      setState(() => _pendingRequests.add(trainerId));
+                    },
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(48),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
+                error: (_, __) => const SliverToBoxAdapter(
+                  child: _EmptySearchPrompt(),
+                ),
               )
             else
               searchAsync.when(
