@@ -134,16 +134,11 @@ class _BodyCheckGrid extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
+    return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.72,
-      ),
       itemCount: checks.length,
-      itemBuilder: (context, index) => _BodyCheckCard(
+      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      itemBuilder: (context, index) => _BodyCheckRow(
         bodyCheck: checks[index],
         showClientName: isTrainer,
       ),
@@ -152,11 +147,11 @@ class _BodyCheckGrid extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Card
+// Row layout (PWA-style: date + horizontal photo strip + info)
 // ---------------------------------------------------------------------------
 
-class _BodyCheckCard extends StatelessWidget {
-  const _BodyCheckCard({
+class _BodyCheckRow extends StatelessWidget {
+  const _BodyCheckRow({
     required this.bodyCheck,
     required this.showClientName,
   });
@@ -166,36 +161,125 @@ class _BodyCheckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstPhoto = bodyCheck.photos.isNotEmpty
-        ? bodyCheck.photos.first
-        : null;
+    final dateStr = _formatDate(bodyCheck.date);
+    final commentCount = bodyCheck.commentCount;
 
     return GestureDetector(
       onTap: () => context.push('/body-checks/${bodyCheck.id}'),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _PhotoThumbnail(
-                photo: firstPhoto,
-                photoCount: bodyCheck.photoCount,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Date header
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Text(
+                  dateStr,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                if (showClientName && bodyCheck.clientName.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    bodyCheck.clientName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Horizontal photo strip
+          SizedBox(
+            height: 160,
+            child: bodyCheck.photos.isEmpty
+                ? Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundCard,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.accessibility_new_rounded,
+                        size: 48,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: bodyCheck.photos.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    itemBuilder: (context, index) {
+                      final photo = bodyCheck.photos[index];
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          photo.photo,
+                          width: 130,
+                          height: 160,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (_, child, progress) {
+                            if (progress == null) return child;
+                            return Container(
+                              width: 130,
+                              height: 160,
+                              color: AppColors.backgroundCardHover,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 130,
+                            height: 160,
+                            color: AppColors.backgroundCardHover,
+                            child: const Icon(
+                              Icons.broken_image_rounded,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+
+          // Info row: photo count + comments
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              '${bodyCheck.photoCount} foto   $commentCount commenti',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textMuted,
               ),
             ),
-            _CardInfo(
-              bodyCheck: bodyCheck,
-              showClientName: showClientName,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('dd MMMM yyyy', 'en').format(date);
+    } catch (_) {
+      return dateStr;
+    }
   }
 }
 
