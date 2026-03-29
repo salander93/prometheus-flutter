@@ -17,10 +17,10 @@ import 'package:palestra/presentation/shared/providers/body_check_providers.dart
 // ──────────────────────────────────────────────────────────────
 
 enum _PhotoPosition {
-  front('front', 'Frontale'),
-  back('back', 'Posteriore'),
-  rightSide('right_side', 'Lato Destro'),
-  leftSide('left_side', 'Lato Sinistro');
+  front('FRONT', 'Frontale'),
+  back('BACK', 'Posteriore'),
+  rightSide('RIGHT', 'Lato Destro'),
+  leftSide('LEFT', 'Lato Sinistro');
 
   const _PhotoPosition(this.apiValue, this.label);
 
